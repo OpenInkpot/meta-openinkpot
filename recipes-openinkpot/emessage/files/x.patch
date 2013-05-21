@@ -1,0 +1,13 @@
+diff --git a/configure.ac b/configure.ac
+index b4cd828..aaa625f 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -6,7 +6,7 @@ AC_PROG_CC
+ 
+ PKG_PROG_PKG_CONFIG
+ 
+-PKG_CHECK_MODULES(EFL, [ecore ecore-evas evas edje])
++PKG_CHECK_MODULES(EFL, [ecore ecore-evas ecore-x evas edje])
+ PKG_CHECK_MODULES(EOI, [libeoi])
+ 
+ AC_OUTPUT([Makefile src/Makefile themes/Makefile])

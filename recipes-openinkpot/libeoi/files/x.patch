@@ -1,0 +1,72 @@
+diff --git a/configure.ac b/configure.ac
+index bed54c0..93fccb4 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -5,7 +5,7 @@ AM_INIT_AUTOMAKE(foreign)
+ AC_PROG_CC_C99
+ AM_PROG_LIBTOOL
+ 
+-PKG_CHECK_MODULES(EFL, [eina-0 evas edje])
++PKG_CHECK_MODULES(EFL, [eina evas edje])
+ PKG_CHECK_MODULES(ECORE, [ecore])
+ PKG_CHECK_MODULES(ECORE_X, [ecore-x])
+ PKG_CHECK_MODULES(EFREET, [efreet])
+diff --git a/src/Makefile.am b/src/Makefile.am
+index bfe70ea..11cf6c0 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -7,7 +7,7 @@ include_HEADERS = libeoi.h libeoi_textbox.h libeoi_help.h libeoi_battery.h \
+ 		libeoi_clock.h libeoi_themes.h libchoicebox.h libeoi_utils.h \
+ 		libeoi_dialog.h libeoi_entry.h libeoi_vk.h libeoi_numentry.h
+ 
+-noinst_PROGRAMS = eoi_test
++#noinst_PROGRAMS = eoi_test
+ 
+ AM_CFLAGS = --std=gnu99 -Wall -DDATADIR='"$(datadir)"' -DSYSCONFDIR='"$(sysconfdir)"'
+ 
+@@ -15,5 +15,5 @@ INCLUDES = @EFL_CFLAGS@ @LIBKEYS_CFLAGS@ @ECORE_EVAS_CFLAGS@ @EFREET_CFLAGS@ @EC
+ libeoi_la_LDFLAGS = -no-undefined -version-info 4:0:1 -Wl,--as-needed
+ libeoi_la_LIBADD = @EFL_LIBS@ @LIBKEYS_LIBS@ @EFREET_LIBS@ @ECORE_EVAS_LIBS@ @ECORE_X_LIBS@ @ECORE_LIBS@
+ 
+-eoi_test_SOURCES = eoi_test.c
+-eoi_test_LDFLAGS = @EFL_LIBS@ @ECORE_EVAS_LIBS@ libeoi.la
++#eoi_test_SOURCES = eoi_test.c
++#eoi_test_LDFLAGS = @EFL_LIBS@ @ECORE_EVAS_LIBS@ libeoi.la
+diff --git a/src/libeoi.c b/src/libeoi.c
+index 720fbfd..a7214a5 100644
+--- a/src/libeoi.c
++++ b/src/libeoi.c
+@@ -70,7 +70,7 @@ static bool numbering_enabled;
+ static bool numbering_always;
+ static int width;
+ static int height;
+-static Ecore_X_Randr_Rotation rotation;
++static Ecore_X_Randr_Orientation rotation;
+ 
+ static void
+ _eoi_numbering_read_config()
+@@ -99,6 +99,8 @@ _eoi_numbering_read_config()
+ static bool
+ _is_currently_hinted()
+ {
++	int w, h;
++
+     if (!numbering_enabled)
+         return false;
+ 
+@@ -106,12 +108,10 @@ _is_currently_hinted()
+         return true;
+ 
+     Ecore_X_Window root = ecore_x_window_root_first_get();
+-    ecore_x_randr_get_screen_info_prefetch(root);
+-    ecore_x_randr_get_screen_info_fetch();
+-    Ecore_X_Randr_Rotation r = ecore_x_randr_screen_rotation_get(root);
+-    Ecore_X_Screen_Size s = ecore_x_randr_current_screen_size_get(root);
++    Ecore_X_Randr_Orientation r = ecore_x_randr_screen_primary_output_orientations_get(root);
++	ecore_x_screen_size_get(root, &w, &h);
+ 
+-    return !(width == s.width && height == s.height && rotation == r);
++    return !(width == w && height == h && rotation == r);
+ }
+ 
+ static void

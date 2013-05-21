@@ -1,0 +1,52 @@
+diff --git a/cmaps/Makefile.am b/cmaps/Makefile.am
+index 6dbb811..f10ba6e 100644
+--- a/cmaps/Makefile.am
++++ b/cmaps/Makefile.am
+@@ -51,16 +51,16 @@ cmap_korea_files =  \
+ 	KSCpc-EUC-V UniKS-UCS2-H UniKS-UCS2-V 
+ 
+ cmap_tounicode.c: $(cmap_tounicode_files)
+-	cmapdump $@ $+
++	../mupdf/cmapdump $@ $+
+ 
+ cmap_cns.c: $(cmap_cns_files)
+-	cmapdump $@ $+
++	../mupdf/cmapdump $@ $+
+ 
+ cmap_gb.c: $(cmap_gb_files)
+-	cmapdump $@ $+
++	../mupdf/cmapdump $@ $+
+ 
+ cmap_japan.c: $(cmap_japan_files)
+-	cmapdump $@ $+
++	../mupdf/cmapdump $@ $+
+ 
+ cmap_korea.c: $(cmap_korea_files)
+-	cmapdump $@ $+
++	../mupdf/cmapdump $@ $+
+diff --git a/fonts/Makefile.am b/fonts/Makefile.am
+index 293a3e5..7b7cf5e 100644
+--- a/fonts/Makefile.am
++++ b/fonts/Makefile.am
+@@ -16,16 +16,16 @@ libfonts_la_SOURCES =	\
+ 	font_sans.c
+ 
+ font_misc.c: Dingbats.cff StandardSymL.cff URWChanceryL-MediItal.cff
+-	fontdump $@ $+
++	../mupdf/fontdump $@ $+
+ 
+ font_mono.c: NimbusMonL-Regu.cff NimbusMonL-ReguObli.cff NimbusMonL-Bold.cff NimbusMonL-BoldObli.cff
+-	fontdump $@ $+
++	../mupdf/fontdump $@ $+
+ 
+ font_serif.c: NimbusRomNo9L-Regu.cff NimbusRomNo9L-ReguItal.cff NimbusRomNo9L-Medi.cff NimbusRomNo9L-MediItal.cff
+-	fontdump $@ $+
++	../mupdf/fontdump $@ $+
+ 
+ font_sans.c: NimbusSanL-Bold.cff NimbusSanL-BoldItal.cff NimbusSanL-Regu.cff NimbusSanL-ReguItal.cff
+-	fontdump $@ $+
++	../mupdf/fontdump $@ $+
+ 
+ font_cjk.c: droid/DroidSansFallback.ttf
+-	fontdump $@ $+
++	../mupdf/fontdump $@ $+

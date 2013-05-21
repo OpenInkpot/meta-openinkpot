@@ -1,0 +1,35 @@
+diff --git a/autosuspend.c b/autosuspend.c
+index e6421a7..fda2d62 100644
+--- a/autosuspend.c
++++ b/autosuspend.c
+@@ -57,7 +57,7 @@ sock_connect(const char *socket_path, int errcode)
+ }
+ 
+ static void
+-pwrite(int fd, const char *buf, int len)
++pwrite_(int fd, const char *buf, int len)
+ {
+     while (len) {
+         int written = write(fd, buf, len);
+@@ -75,9 +75,9 @@ static void
+ send_cmd(const char *socket_path, const char *cmd, const char *lockname)
+ {
+     int client = sock_connect(socket_path, 1);
+-    pwrite(client, cmd, strlen(cmd));
+-    pwrite(client, " ", 1);
+-    pwrite(client, lockname, strlen(lockname));
++    pwrite_(client, cmd, strlen(cmd));
++    pwrite_(client, " ", 1);
++    pwrite_(client, lockname, strlen(lockname));
+     if (close(client) == -1)
+         err(1, "unable to close socket");
+ }
+@@ -86,7 +86,7 @@ static void
+ status(const char *socket_path, const char *cmd)
+ {
+     int client = sock_connect(socket_path, 1);
+-    pwrite(client, cmd, strlen(cmd));
++    pwrite_(client, cmd, strlen(cmd));
+     if (shutdown(client, SHUT_WR) == -1)
+         err(1, "unable to shutdown socket");
+     for (;;) {

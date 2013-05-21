@@ -1,0 +1,47 @@
+diff --git a/src/grabkeys.c b/src/grabkeys.c
+index cca5d21..ea3b049 100644
+--- a/src/grabkeys.c
++++ b/src/grabkeys.c
+@@ -16,13 +16,15 @@ typedef struct
+     key_handler_t key_handler;
+ } context_t;
+ 
+-static int handle_keypress(void* param, xcb_connection_t* c,
+-                           xcb_key_press_event_t* event)
++static void
++event_handle(xcb_generic_event_t *event, context_t *context)
+ {
+-    context_t* context = param;
+-    (*context->key_handler)(context->config, event->detail,
+-                            event->state & XCB_MOD_MASK_1);
+-    return 1;
++	uint8_t response_type = XCB_EVENT_RESPONSE_TYPE(event);
++	xcb_key_press_event_t *keypress = (xcb_key_press_event_t*) event;
++
++	if(response_type == XCB_KEY_PRESS)
++		(*context->key_handler)(context->config, keypress->detail,
++				keypress->state & XCB_MOD_MASK_1);
+ }
+ 
+ int run(config_t* config, key_handler_t key_handler)
+@@ -45,11 +47,6 @@ int run(config_t* config, key_handler_t key_handler)
+ 
+     context_t context = { config, key_handler };
+ 
+-    xcb_event_handlers_t eh;
+-    memset(&eh, 0, sizeof(xcb_event_handlers_t));
+-    xcb_event_handlers_init(c, &eh);
+-    xcb_event_set_key_press_handler(&eh, handle_keypress, &context);
+-
+     xcb_void_cookie_t* cookies = alloca(sizeof(xcb_void_cookie_t)
+                                              * config->count);
+     if(!cookies)
+@@ -75,7 +72,7 @@ int run(config_t* config, key_handler_t key_handler)
+     xcb_generic_event_t* e;
+     while((e = xcb_wait_for_event(c)))
+     {
+-        xcb_event_handle(&eh, e);
++		event_handle(e, &context);
+         free(e);
+     }
+ 

@@ -1,0 +1,13 @@
+diff --git a/src/lib/libextractor.c b/src/lib/libextractor.c
+index 4b47e4e..c4cbc37 100644
+--- a/src/lib/libextractor.c
++++ b/src/lib/libextractor.c
+@@ -27,6 +27,8 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <sys/mman.h>
++#include <sys/types.h>
++#include <sys/stat.h>
+ #include <unistd.h>
+ 
+ #include "extractor-mini.h"

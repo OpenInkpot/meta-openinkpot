@@ -1,0 +1,47 @@
+diff --git a/Makefile.am b/Makefile.am
+index f8706c8..a9328eb 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -3,6 +3,6 @@ SUBDIRS = src themes data po help
+ desktopdir = $(datarootdir)/applications
+ desktop_DATA = po/locopdf.desktop
+ 
+-install-exec-hook:
+-	mkdir -p ${DESTDIR}/usr/share/help/locopdf
+-	oi-help-compiler -u $(srcdir)/help ${DESTDIR}/usr/share/help/locopdf
++#install-exec-hook:
++#	mkdir -p ${DESTDIR}/usr/share/help/locopdf
++#	oi-help-compiler -u $(srcdir)/help ${DESTDIR}/usr/share/help/locopdf
+diff --git a/configure.ac b/configure.ac
+index a35c0dd..43b83ff 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -6,12 +6,13 @@ AC_LANG_C
+ AC_PROG_CC_C99
+ PKG_PROG_PKG_CONFIG
+ 
+-PKG_CHECK_MODULES(EFL,[ecore ecore-file ecore-evas evas edje efreet efreet-mime])
++PKG_CHECK_MODULES(EFL,[ecore ecore-file ecore-con ecore-x ecore-evas evas edje efreet efreet-mime])
+ PKG_CHECK_MODULES(EPDF, [epdf])
+ PKG_CHECK_MODULES(EDJVU, [edjvu])
+ PKG_CHECK_MODULES(SQLITE, [sqlite3])
+ PKG_CHECK_MODULES(LIBKEYS, [libkeys])
+ PKG_CHECK_MODULES(LIBEOI, [libeoi])
+ PKG_CHECK_MODULES(LIBCHOICEBOX, [libchoicebox])
++PKG_CHECK_MODULES(XCB, [xcb])
+ 
+ AC_OUTPUT(Makefile src/Makefile themes/Makefile themes/default/Makefile themes/azbooka/Makefile data/Makefile po/Makefile help/Makefile)
+diff --git a/src/Makefile.am b/src/Makefile.am
+index de86dc4..f31b1e4 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -1,7 +1,7 @@
+ bin_PROGRAMS = locopdf
+ locopdf_SOURCES = locopdf.c choices.c entry.c dialogs.c database.c info_export.c epdf_plugin.c edjvu_plugin.c
+ 
+-INCLUDES= @EFL_CFLAGS@ @EPDF_CFLAGS@ @EDJVU_CFLAGS@ @SQLITE_CFLAGS@ @LIBKEYS_CFLAGS@ @LIBEOI_CFLAGS@ @LIBCHOICEBOX_CFLAGS@
+-locopdf_LDADD = @EFL_LIBS@ @EPDF_LIBS@ @EDJVU_LIBS@ @SQLITE_LIBS@ @LIBKEYS_LIBS@ @LIBEOI_LIBS@ @LIBCHOICEBOX_LIBS@
++INCLUDES= @EFL_CFLAGS@ @EPDF_CFLAGS@ @EDJVU_CFLAGS@ @SQLITE_CFLAGS@ @LIBKEYS_CFLAGS@ @LIBEOI_CFLAGS@ @LIBCHOICEBOX_CFLAGS@ @XCB_CFLAGS@
++locopdf_LDADD = @EFL_LIBS@ @EPDF_LIBS@ @EDJVU_LIBS@ @SQLITE_LIBS@ @LIBKEYS_LIBS@ @LIBEOI_LIBS@ @LIBCHOICEBOX_LIBS@ @XCB_LIBS@
+ 
+ locopdf_LDFLAGS = -Wl,--as-needed

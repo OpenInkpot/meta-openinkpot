@@ -1,0 +1,220 @@
+diff --git a/Makefile b/Makefile
+index 18a1444..d9e6386 100644
+--- a/Makefile
++++ b/Makefile
+@@ -12,19 +12,19 @@ all: options ${WM}
+ 
+ options:
+ 	@echo ${WM} build options:
+-	@echo "CFLAGS   = ${CFLAGS}"
+-	@echo "LDFLAGS  = ${LDFLAGS}"
++	@echo "CFLAGS   = ${CFLAGS} ${CFLAGS_local}"
++	@echo "LDFLAGS  = ${LDFLAGS} ${LDFLAGS_local}"
+ 	@echo "CC       = ${CC}"
+ 
+ .c.o:
+ 	@echo CC $<
+-	@${CC} -c ${CFLAGS} -DOLD_XCB_AUX $<
++	@${CC} -c ${CFLAGS} ${CFLAGS_local} $<
+ 
+ ${OBJ}: config.mk
+ 
+ ${WM}: ${OBJ}
+ 	@echo CC -o $@
+-	@${CC} -o $@ ${OBJ} ${LDFLAGS}
++	@${CC} -o $@ ${OBJ} ${LDFLAGS} ${LDFLAGS_local}
+ 
+ clean:
+ 	@echo cleaning
+diff --git a/config.mk b/config.mk
+index 25dcc7c..4396ea3 100644
+--- a/config.mk
++++ b/config.mk
+@@ -10,6 +10,6 @@ PREFIX = /usr/local
+ L=xcb xcb-aux xcb-atom xcb-icccm
+ 
+ # flags
+-CPPFLAGS = -DVERSION=\"${VERSION}\"
+-CFLAGS = -std=c99 -pedantic -Wall -O0 -g $(CPPFLAGS) $(foreach lib,$(L),$(shell pkg-config --cflags $(lib)))
+-LDFLAGS = $(foreach lib,$(L),$(shell pkg-config --libs $(lib)))
++CPPFLAGS_local = -DVERSION=\"${VERSION}\"
++CFLAGS_local = -std=c99 -pedantic -Wall -O0 -g $(CPPFLAGS_local) $(foreach lib,$(L),$(shell pkg-config --cflags $(lib)))
++LDFLAGS_local = $(foreach lib,$(L),$(shell pkg-config --libs $(lib)))
+diff --git a/uuwm.c b/uuwm.c
+index b72d587..d26dd03 100644
+--- a/uuwm.c
++++ b/uuwm.c
+@@ -77,29 +77,6 @@ static int wx, wy, ww, wh; /* window area geometry x, y, w, h, docks excluded */
+ static client_t *clients = NULL;
+ static client_t *stack = NULL;
+ 
+-#ifdef OLD_XCB_AUX
+-/* Omission from xcb-aux */
+-static void
+-pack_list(uint32_t mask, const uint32_t *src, uint32_t *dest)
+-{
+-    for ( ; mask; mask >>= 1, src++)
+-        if (mask & 1)
+-            *dest++ = *src;
+-}
+-
+-static xcb_void_cookie_t
+-xcb_aux_change_window_attributes_checked (xcb_connection_t      *c,
+-                                          xcb_window_t           window,
+-                                          uint32_t               mask,
+-                                          const xcb_params_cw_t *params)
+-{
+-    uint32_t value_list[16];
+-    pack_list(mask, (const uint32_t *)params, value_list);
+-    return xcb_change_window_attributes_checked( c, window, mask, value_list );
+-}
+-/* End of omission */
+-#endif
+-
+ /* Allocs size zero-filled bytes or dies if unable to do so. */
+ static void *
+ xalloc(size_t size)
+@@ -294,7 +271,7 @@ setup()
+     xcb_void_cookie_t c
+         = xcb_change_property_checked(conn, XCB_PROP_MODE_REPLACE,
+                                       screen->root, atom[NetSupported],
+-                                      ATOM, 32, NetLast - NetFirst,
++                                      XCB_ATOM, 32, NetLast - NetFirst,
+                                       atom + NetFirst);
+ 
+     if (xcb_request_check(conn, c))
+@@ -324,7 +301,7 @@ setup()
+ static xcb_window_t
+ get_transient_for(xcb_window_t win)
+ {
+-    xcb_get_property_cookie_t cookie = xcb_get_wm_transient_for(conn, win);
++    xcb_get_property_cookie_t cookie = xcb_icccm_get_wm_transient_for(conn, win);
+ 
+     xcb_get_property_reply_t *transient_reply
+         = xcb_get_property_reply(conn, cookie, NULL);
+@@ -333,7 +310,7 @@ get_transient_for(xcb_window_t win)
+         return XCB_NONE;
+ 
+     xcb_window_t transient_for = XCB_NONE;
+-    if (xcb_get_wm_transient_for_from_reply(&transient_for, transient_reply))
++    if (xcb_icccm_get_wm_transient_for_from_reply(&transient_for, transient_reply))
+         return transient_for;
+ 
+     return XCB_NONE;
+@@ -558,7 +535,7 @@ manage(xcb_window_t w)
+     raise(c);
+ 
+     debug("manage: win: %x, state: WM_STATE_NORMAL\n", c->win);
+-    if (!setclientstate(c, XCB_WM_STATE_NORMAL))
++    if (!setclientstate(c, XCB_ICCCM_WM_STATE_NORMAL))
+         goto err;
+ 
+     return;
+@@ -594,7 +571,7 @@ unmanage(client_t *c)
+     else
+         detachstack(c);
+ 
+-    setclientstate(c, XCB_WM_STATE_WITHDRAWN);
++    setclientstate(c, XCB_ICCCM_WM_STATE_WITHDRAWN);
+     free(c);
+ 
+     xcb_request_check(conn, xcb_ungrab_server(conn));
+@@ -625,8 +602,8 @@ scan()
+     int i;
+     for (i = 0; i < len; ++i) {
+         cookies[i] = xcb_get_window_attributes(conn, children[i]);
+-        transient_cookies[i] = xcb_get_wm_transient_for(conn, children[i]);
+-        hints_cookies[i] = xcb_get_wm_hints(conn, children[i]);
++        transient_cookies[i] = xcb_icccm_get_wm_transient_for(conn, children[i]);
++        hints_cookies[i] = xcb_icccm_get_wm_hints(conn, children[i]);
+     }
+ 
+     int ntransients = 0;
+@@ -673,7 +650,7 @@ scan()
+ 
+         /* Delay transient-for windows for a second loop */
+         xcb_window_t transient_for;
+-        if (xcb_get_wm_transient_for_from_reply(&transient_for, transient_reply)) {
++        if (xcb_icccm_get_wm_transient_for_from_reply(&transient_for, transient_reply)) {
+             transients[ntransients++] = children[i];
+             free(info);
+             free(transient_reply);
+@@ -825,13 +802,13 @@ mapnotify(void *p, xcb_connection_t *conn, xcb_map_notify_event_t *e)
+ static void
+ check_refloat(client_t *c)
+ {
+-    xcb_get_property_cookie_t cookie = xcb_get_wm_transient_for(conn, c->win);
++    xcb_get_property_cookie_t cookie = xcb_icccm_get_wm_transient_for(conn, c->win);
+ 
+     xcb_get_property_reply_t* transient_reply
+         = xcb_get_property_reply(conn, cookie, NULL);
+ 
+     xcb_window_t transient_for;
+-    if (xcb_get_wm_transient_for_from_reply(&transient_for, transient_reply)) {
++    if (xcb_icccm_get_wm_transient_for_from_reply(&transient_for, transient_reply)) {
+         bool oldisfloating = c->is_floating;
+         c->is_floating = getclient(transient_for) != NULL;
+         if (c->is_floating != oldisfloating)
+@@ -844,12 +821,12 @@ propertynotify(void *p, xcb_connection_t *conn, xcb_property_notify_event_t *e)
+ {
+     client_t *c;
+ 
+-    if ((e->window == screen->root) && (e->atom == WM_NAME))
++    if ((e->window == screen->root) && (e->atom == XCB_ATOM_WM_NAME))
+         return 0; /* ignore */
+     if (e->state == XCB_PROPERTY_DELETE)
+         return 0; /* ignore */
+     if ((c = getclient(e->window))) {
+-        if (e->atom == WM_TRANSIENT_FOR)
++        if (e->atom == XCB_ATOM_WM_TRANSIENT_FOR)
+             check_refloat(c);
+     }
+     return 0;
+@@ -865,24 +842,34 @@ unmapnotify(void *p, xcb_connection_t *conn, xcb_unmap_notify_event_t *e)
+ }
+ 
+ static void
+-run()
++event_handle(xcb_generic_event_t *event)
+ {
+-    xcb_event_handlers_t eh;
+-    memset(&eh, 0, sizeof(eh)); /* Not necessary with xcb-util > 0.3.4 */
+-    xcb_event_handlers_init(conn, &eh);
++	uint8_t response_type = XCB_EVENT_RESPONSE_TYPE(event);
++
++	/* This is an error, not a event */
++	if(response_type == 0)
++		return;
+ 
+-    xcb_event_set_configure_request_handler(&eh, configurerequest, NULL);
+-    xcb_event_set_configure_notify_handler(&eh, configurenotify, NULL);
+-    xcb_event_set_destroy_notify_handler(&eh, destroynotify, NULL);
+-    xcb_event_set_focus_in_handler(&eh, focusin, NULL);
+-    xcb_event_set_map_request_handler(&eh, maprequest, NULL);
+-    xcb_event_set_map_notify_handler(&eh, mapnotify, NULL);
+-    xcb_event_set_property_notify_handler(&eh, propertynotify, NULL);
+-    xcb_event_set_unmap_notify_handler(&eh, unmapnotify, NULL);
++	switch(response_type) {
++#define EVENT(type, callback) case type: callback(NULL, conn, (void *) event); return
++		EVENT(XCB_CONFIGURE_REQUEST, configurerequest);
++		EVENT(XCB_CONFIGURE_NOTIFY, configurenotify);
++		EVENT(XCB_DESTROY_NOTIFY, destroynotify);
++		EVENT(XCB_FOCUS_IN, focusin);
++		EVENT(XCB_MAP_REQUEST, maprequest);
++		EVENT(XCB_MAPPING_NOTIFY, mapnotify);
++		EVENT(XCB_PROPERTY_NOTIFY, propertynotify);
++		EVENT(XCB_UNMAP_NOTIFY, unmapnotify);
++#undef EVENT
++	}
++}
+ 
++static void
++run()
++{
+     xcb_generic_event_t *e;
+     while ((e = xcb_wait_for_event(conn))) {
+-        xcb_event_handle(&eh, e);
++		event_handle(e);
+         free(e);
+     }
+ }

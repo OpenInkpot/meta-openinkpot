@@ -1,0 +1,35 @@
+#!/bin/sh
+
+#
+# Poor man's display manager
+#
+
+SESSION=/etc/X11/Xsession
+
+DISPLAY=:0
+SERVER=/usr/bin/Xfbdev
+SERVER_ARGS=
+
+if [ -f /etc/default/nulldm ]; then
+    . /etc/default/nulldm
+fi
+
+PIDFILE=/var/run/nulldm.pid
+echo $$ > $PIDFILE
+
+# Setup user's environment
+HOME=$(getent passwd $USER | cut -d: -f6)
+export HOME
+
+trap_exit() {
+    RETVAL=$?
+    kill $XINIT_PID
+    exit $RETVAL
+}
+trap trap_exit HUP PIPE INT QUIT TERM
+
+while :; do
+    xinit $SESSION -- $SERVER $DISPLAY $SERVER_ARGS&
+    XINIT_PID=$!
+    wait
+done

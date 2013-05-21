@@ -1,0 +1,209 @@
+diff --git a/src/apps_cleanup.c b/src/apps_cleanup.c
+index 56e3de3..c9131dc 100644
+--- a/src/apps_cleanup.c
++++ b/src/apps_cleanup.c
+@@ -14,16 +14,11 @@ void gm_apps_cleanup(Ecore_Evas *win)
+ 
+     Ecore_X_Window root = ecore_x_window_root_first_get();
+ 
+-    ecore_x_query_tree_prefetch(root);
+-    ecore_x_query_tree_fetch();
+     int num;
+     Ecore_X_Window *windows = ecore_x_window_children_get(root, &num);
+ 
+     for(int i = 0; i < num; ++i)
+     {
+-        ecore_x_get_window_attributes_prefetch(windows[i]);
+-        ecore_x_get_window_attributes_fetch();
+-
+         Ecore_X_Window_Attributes at;
+         ecore_x_window_attributes_get(windows[i], &at);
+ 
+diff --git a/src/gm.c b/src/gm.c
+index 0ae5428..7853a54 100644
+--- a/src/gm.c
++++ b/src/gm.c
+@@ -112,11 +112,7 @@ static Eina_Bool root_window_prop_change_handler(void *data,
+     Ecore_X_Window root = (Ecore_X_Window)data;
+ 
+     if(atom == 0)
+-    {
+-        ecore_x_atom_get_prefetch(atom_name);
+-        ecore_x_atom_get_fetch();
+         atom = ecore_x_atom_get(atom_name);
+-    }
+ 
+     if(ev->win == root && ev->atom == atom)
+     {
+diff --git a/src/graph.c b/src/graph.c
+index 977da98..2a27aac 100644
+--- a/src/graph.c
++++ b/src/graph.c
+@@ -252,6 +252,7 @@ gm_graphics_show_clock(Evas *evas) {
+ static void
+ gm_get_image_geom(const char *fn, int *iw, int *ih)
+ {
++	/*
+     Evas_Imaging_Image *im = evas_imaging_image_load(fn, NULL);
+     if(im)
+     {
+@@ -259,6 +260,7 @@ gm_get_image_geom(const char *fn, int *iw, int *ih)
+         evas_imaging_image_free(im);
+     }
+     else
++	*/
+         printf("Can't load %s\n", fn);
+ }
+ 
+diff --git a/src/raise.c b/src/raise.c
+index 0371904..36723bb 100644
+--- a/src/raise.c
++++ b/src/raise.c
+@@ -64,7 +64,7 @@ gm_get_active_document_window()
+     cookie =  xcb_get_property(conn, 0,
+                 root,
+                 active_doc_window_id,
+-                WINDOW,
++                XCB_WINDOW,
+                 0L,
+                 LONG_MAX);
+     xcb_get_property_reply_t *reply = xcb_get_property_reply(conn, cookie, NULL);
+diff --git a/themes/default/gm.edc b/themes/default/gm.edc
+index 04416f3..72e9e0c 100644
+--- a/themes/default/gm.edc
++++ b/themes/default/gm.edc
+@@ -46,7 +46,7 @@ styles {
+ 
+ #define ITEM(N, NAME, X1, Y1, X2, Y2)                                   \
+             part {                                                      \
+-                name, XSTR(N-bg);                                       \
++                name, STR(N-bg);                                       \
+                 type, RECT;                                             \
+                 description {                                           \
+                     state, "default" 0.0;                               \
+@@ -56,60 +56,60 @@ styles {
+                 }                                                       \
+             }                                                           \
+             part {                                                      \
+-                name, XSTR(N-top-bg);                                   \
++                name, STR(N-top-bg);                                   \
+                 type, RECT;                                             \
+                 description {                                           \
+                     state, "default" 0.0;                               \
+                     color, 85 85 85 255;                                \
+-                    rel1 { to, XSTR(N-bg); offset, 0 -10; }             \
+-                    rel2 { to, XSTR(N-bg); relative, 1.0 0.0; offset, -1 -2; } \
++                    rel1 { to, STR(N-bg); offset, 0 -10; }             \
++                    rel2 { to, STR(N-bg); relative, 1.0 0.0; offset, -1 -2; } \
+                 }                                                       \
+             }                                                           \
+             part {                                                      \
+-                name, XSTR(N-top);                                      \
+-                images { image, XSTR(start-menu-label-N.png) COMP; }    \
++                name, STR(N-top);                                      \
++                images { image, STR(start-menu-label-N.png) COMP; }    \
+                 description {                                           \
+                     state, "default" 0.0;                               \
+-                    rel1 { to, XSTR(N-top-bg); offset, 74 -15; }           \
+-                    rel2 { to, XSTR(N-top-bg); relative, 0.0 1.0; offset, 103 -1; } \
+-                    image { normal, XSTR(start-menu-label-N.png); }     \
++                    rel1 { to, STR(N-top-bg); offset, 74 -15; }           \
++                    rel2 { to, STR(N-top-bg); relative, 0.0 1.0; offset, 103 -1; } \
++                    image { normal, STR(start-menu-label-N.png); }     \
+                 }                                                       \
+             }                                                           \
+             part {                                                      \
+-                name, XSTR(N-top-left);                                 \
++                name, STR(N-top-left);                                 \
+                 description {                                           \
+                     state, "default" 0.0;                               \
+-                    rel1 { to, XSTR(N-top-bg); }                        \
+-                    rel2 { to, XSTR(N-top-bg); relative, 0.0 1.0; offset, 3 -1; } \
++                    rel1 { to, STR(N-top-bg); }                        \
++                    rel2 { to, STR(N-top-bg); relative, 0.0 1.0; offset, 3 -1; } \
+                     image { normal, "start-menu-left-top-corner-small.png"; } \
+                 }                                                       \
+             }                                                           \
+             part {                                                      \
+-                name, XSTR(N-top-right);                                \
++                name, STR(N-top-right);                                \
+                 description {                                           \
+                     state, "default" 0.0;                               \
+-                    rel1 { to, XSTR(N-top-bg); relative, 1.0 0.0; offset, -4 0; } \
+-                    rel2 { to, XSTR(N-top-bg); }                        \
++                    rel1 { to, STR(N-top-bg); relative, 1.0 0.0; offset, -4 0; } \
++                    rel2 { to, STR(N-top-bg); }                        \
+                     image { normal, "start-menu-right-top-corner-small.png"; } \
+                 }                                                       \
+             }                                                           \
+             part {                                                      \
+-                name, XSTR(N-binder);                                   \
++                name, STR(N-binder);                                   \
+                 description {                                           \
+                     state, "default" 0.0;                               \
+-                    rel1 { to, XSTR(N-bg); offset, 0 5; }               \
+-                    rel2 { to, XSTR(N-bg); relative, 1.0 0.0; offset, -1 25; } \
++                    rel1 { to, STR(N-bg); offset, 0 5; }               \
++                    rel2 { to, STR(N-bg); relative, 1.0 0.0; offset, -1 25; } \
+                     image { normal, "start-menu-binder-small.png"; }    \
+                 }                                                       \
+             }                                                           \
+             part {                                                      \
+-                name, XSTR(N-icon);                                     \
+-                images { image, XSTR(start-menu-icon-NAME.png) COMP; }  \
++                name, STR(N-icon);                                     \
++                images { image, STR(start-menu-icon-NAME.png) COMP; }  \
+                 description {                                           \
+                     state, "default" 0.0;                               \
+-                    rel1 { to, XSTR(N-bg); offset, 31 39; }             \
+-                    rel2 { to, XSTR(N-bg); offset, -32 -40; }           \
+-                    image { normal, XSTR(start-menu-icon-NAME.png); }   \
++                    rel1 { to, STR(N-bg); offset, 31 39; }             \
++                    rel2 { to, STR(N-bg); offset, -32 -40; }           \
++                    image { normal, STR(start-menu-icon-NAME.png); }   \
+                 }                                                       \
+             }                                                           \
+             part {                                                      \
+@@ -120,25 +120,25 @@ styles {
+                     color, 0 0 0 255;                                   \
+                     text { style, "caption"; }                          \
+                     align, 0.5 0.0;                                     \
+-                    rel1 { to, XSTR(N-bg); offset, 0 137; }             \
+-                    rel2 { to, XSTR(N-bg); offset, -1 -1; }             \
++                    rel1 { to, STR(N-bg); offset, 0 137; }             \
++                    rel2 { to, STR(N-bg); offset, -1 -1; }             \
+                 }                                                       \
+             }                                                           \
+             part {                                                      \
+-                name, XSTR(N-bottom-left);                              \
++                name, STR(N-bottom-left);                              \
+                 description {                                           \
+                     state, "default" 0.0;                               \
+-                    rel1 { to, XSTR(N-bg); relative, 0.0 1.0; offset, 0 -2; } \
+-                    rel2 { to, XSTR(N-bg); relative, 0.0 1.0; offset, 1 -1; } \
++                    rel1 { to, STR(N-bg); relative, 0.0 1.0; offset, 0 -2; } \
++                    rel2 { to, STR(N-bg); relative, 0.0 1.0; offset, 1 -1; } \
+                     image { normal, "start-menu-left-bottom-corner-small.png"; } \
+                 }                                                       \
+             }                                                           \
+             part {                                                      \
+-                name, XSTR(N-bottom-right);                             \
++                name, STR(N-bottom-right);                             \
+                 description {                                           \
+                     state, "default" 0.0;                               \
+-                    rel1 { to, XSTR(N-bg); relative, 1.0 1.0; offset, -2 -2; } \
+-                    rel2 { to, XSTR(N-bg); relative, 1.0 1.0; offset, -1 -1; } \
++                    rel1 { to, STR(N-bg); relative, 1.0 1.0; offset, -2 -2; } \
++                    rel2 { to, STR(N-bg); relative, 1.0 1.0; offset, -1 -1; } \
+                     image { normal, "start-menu-right-bottom-corner-small.png"; } \
+                 }                                                       \
+             };                                                          \
+@@ -146,7 +146,7 @@ styles {
+ 
+ #define CURSOR_STATE(NAME, X1, Y1, X2, Y2, C)   \
+             description {                       \
+-                state, XSTR(NAME) 0.0;          \
++                state, STR(NAME) 0.0;          \
+                 inherit, "default" 0.0;         \
+                 color, C C C 255;               \
+                 rel1 {                          \

@@ -1,0 +1,255 @@
+diff --git a/fbreader/src/fbreader/FBReaderActions.cpp b/fbreader/src/fbreader/FBReaderActions.cpp
+index 889b3de..329e39a 100644
+--- a/fbreader/src/fbreader/FBReaderActions.cpp
++++ b/fbreader/src/fbreader/FBReaderActions.cpp
+@@ -20,6 +20,7 @@
+ 
+ #include <algorithm>
+ #include <stdint.h>
++#include <unistd.h>
+ 
+ #include <ZLStringUtil.h>
+ #include <ZLDialogManager.h>
+diff --git a/fbreader/src/fbreader/ScrollingAction.cpp b/fbreader/src/fbreader/ScrollingAction.cpp
+index 4fe7847..bf12aeb 100644
+--- a/fbreader/src/fbreader/ScrollingAction.cpp
++++ b/fbreader/src/fbreader/ScrollingAction.cpp
+@@ -29,6 +29,7 @@
+ #include "BookTextView.h"
+ #include "../bookmodel/BookModel.h"
+ 
++#include <unistd.h>
+ #include <stdint.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+diff --git a/fbreader/src/library/Library.cpp b/fbreader/src/library/Library.cpp
+index 844905c..ad1e4ec 100644
+--- a/fbreader/src/library/Library.cpp
++++ b/fbreader/src/library/Library.cpp
+@@ -39,7 +39,7 @@
+ shared_ptr<Library> Library::ourInstance;
+ const size_t Library::MaxRecentListSize = 10;
+ 
+-Library::Library &Library::Instance() {
++Library &Library::Instance() {
+ 	if (ourInstance.isNull()) {
+ 		ourInstance = new Library();
+ 	}
+diff --git a/makefiles/arch/desktop.mk b/makefiles/arch/desktop.mk
+index f549af9..adfff8e 100644
+--- a/makefiles/arch/desktop.mk
++++ b/makefiles/arch/desktop.mk
+@@ -13,7 +13,7 @@ override AR += rsu
+ #LD = g++
+ 
+ CFLAGS = -pipe -fno-exceptions -Wall -Wno-ctor-dtor-privacy -W -DLIBICONV_PLUG
+-LDFLAGS =
++LDFLAGS = 
+ 
+ ifeq "$(UI_TYPE)" "qt"
+   MOC = moc-qt3
+@@ -38,8 +38,8 @@ ifeq "$(UI_TYPE)" "gtk"
+ endif
+ 
+ ifeq "$(UI_TYPE)" "ewl"
+-  UILIBS = $(shell pkg-config --libs xcb xcb-image xcb-atom xcb-randr evas efreet pango pangoft2 glib-2.0 libpng freetype2 ecore ecore-evas libchoicebox libeoi) -ljpeg -lungif -lrt
+-  EWLINCLUDE = $(shell pkg-config --cflags xcb xcb-image xcb-randr xcb-atom evas efreet pango pangoft2 glib-2.0 libpng freetype2 ecore ecore-evas libchoicebox libeoi)
++  UILIBS = $(shell pkg-config --libs xcb xcb-image xcb-atom xcb-randr evas efreet edje pango pangoft2 glib-2.0 libpng freetype2 ecore ecore-x ecore-evas libchoicebox libeoi) -ljpeg -lgif -lrt -ldl
++  EWLINCLUDE = $(shell pkg-config --cflags xcb xcb-image xcb-randr xcb-atom evas efreet edje pango pangoft2 glib-2.0 libpng freetype2 ecore ecore-x ecore-evas libchoicebox libeoi)
+   ZLSHARED = no
+ endif
+ 
+diff --git a/zlibrary/ui/src/ewl/dialogs/ZLEwlChoicebox.cpp b/zlibrary/ui/src/ewl/dialogs/ZLEwlChoicebox.cpp
+index 9f9c9b2..3efebec 100644
+--- a/zlibrary/ui/src/ewl/dialogs/ZLEwlChoicebox.cpp
++++ b/zlibrary/ui/src/ewl/dialogs/ZLEwlChoicebox.cpp
+@@ -395,12 +395,12 @@ static Eina_Bool lcb_screen_change_handler(void *data, int type, void *event)
+ 
+ 	int w, h;
+ 
+-	if(e->rotation == ECORE_X_RANDR_ROT_90 || e->rotation == ECORE_X_RANDR_ROT_270) {
+-		h = e->width;
+-		w = e->height;
++	if(e->orientation == ECORE_X_RANDR_ORIENTATION_ROT_90 || e->orientation == ECORE_X_RANDR_ORIENTATION_ROT_270) {
++		h = e->size.width;
++		w = e->size.height;
+ 	} else {
+-		w = e->width;
+-		h = e->height;
++		w = e->size.width;
++		h = e->size.height;
+ 	}
+ 
+ 	ecore_evas_move(win, 0, 0);
+@@ -440,8 +440,6 @@ void cb_lcb_new(int select_item)
+ 
+ 	int w, h;
+ 	extern xcb_window_t window;
+-	ecore_x_drawable_geometry_get_prefetch(window);
+-	ecore_x_drawable_geometry_get_fetch();
+ 	ecore_x_window_size_get(window, &w, &h);
+ 
+ 
+@@ -814,12 +812,12 @@ static Eina_Bool fcb_screen_change_handler(void *data, int type, void *event)
+ 
+ 	int w, h;
+ 
+-	if(e->rotation == ECORE_X_RANDR_ROT_90 || e->rotation == ECORE_X_RANDR_ROT_270) {
+-		h = e->width;
+-		w = e->height;
++	if(e->orientation == ECORE_X_RANDR_ORIENTATION_ROT_90 || e->orientation == ECORE_X_RANDR_ORIENTATION_ROT_270) {
++		h = e->size.width;
++		w = e->size.height;
+ 	} else {
+-		w = e->width;
+-		h = e->height;
++		w = e->size.width;
++		h = e->size.height;
+ 	}
+ 
+ 	ecore_evas_move(win, 0, 0);
+@@ -935,8 +933,6 @@ void cb_fcb_new(cb_list *list, int select_item)
+ 
+ 		int w, h;
+ 		extern xcb_window_t window;
+-		ecore_x_drawable_geometry_get_prefetch(window);
+-		ecore_x_drawable_geometry_get_fetch();
+ 		ecore_x_window_size_get(window, &w, &h);
+ 
+ 		fcb_win = ecore_evas_software_x11_8_new(0, 0, 0, 0, w, h);
+diff --git a/zlibrary/ui/src/ewl/dialogs/ZLEwlHelp.cpp b/zlibrary/ui/src/ewl/dialogs/ZLEwlHelp.cpp
+index db07f9d..b54eef1 100644
+--- a/zlibrary/ui/src/ewl/dialogs/ZLEwlHelp.cpp
++++ b/zlibrary/ui/src/ewl/dialogs/ZLEwlHelp.cpp
+@@ -105,12 +105,12 @@ static Eina_Bool screen_change_handler(void *data, int type, void *event)
+ 
+     int w, h;
+ 
+-    if(e->rotation == ECORE_X_RANDR_ROT_90 || e->rotation == ECORE_X_RANDR_ROT_270) {
+-        h = e->width;
+-        w = e->height;
++    if(e->orientation == ECORE_X_RANDR_ORIENTATION_ROT_90 || e->orientation == ECORE_X_RANDR_ORIENTATION_ROT_270) {
++        h = e->size.width;
++        w = e->size.height;
+     } else {
+-        w = e->width;
+-        h = e->height;
++        w = e->size.width;
++        h = e->size.height;
+     }
+ 
+     ecore_evas_resize(win, w, h);
+diff --git a/zlibrary/ui/src/ewl/image/ZLEwlImageManager.cpp b/zlibrary/ui/src/ewl/image/ZLEwlImageManager.cpp
+index 7705cc2..fa83a5b 100644
+--- a/zlibrary/ui/src/ewl/image/ZLEwlImageManager.cpp
++++ b/zlibrary/ui/src/ewl/image/ZLEwlImageManager.cpp
+@@ -486,11 +486,11 @@ void ZLEwlImageManager::convertImageDirectPng(const std::string &stringData, ZLI
+ 	if ( !png_ptr )
+ 		return;
+ 
+-	if (setjmp( png_ptr->jmpbuf )) {
++	if (setjmp( png_jmpbuf(png_ptr) )) {
+ 		data.init(0, 0);
+ 		if (png_ptr)
+ 		{
+-			png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
++			png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+ 		}
+ 		if ( row )
+ 			delete row;
+@@ -501,7 +501,7 @@ void ZLEwlImageManager::convertImageDirectPng(const std::string &stringData, ZLI
+ 	if (!info_ptr)
+ 		mypng_error_func(png_ptr, "cannot create png info struct");
+ 	png_set_read_fn(png_ptr,
+-			(voidp)&my_png, mypng_read_func);
++			(void*)&my_png, mypng_read_func);
+ 	png_read_info( png_ptr, info_ptr );
+ 
+ 
+@@ -520,7 +520,7 @@ void ZLEwlImageManager::convertImageDirectPng(const std::string &stringData, ZLI
+ 		png_set_palette_to_rgb(png_ptr);
+ 
+ 	if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
+-		png_set_gray_1_2_4_to_8(png_ptr);
++		png_set_expand_gray_1_2_4_to_8(png_ptr);
+ 
+ 	if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+ 		png_set_tRNS_to_alpha(png_ptr);
+@@ -565,7 +565,7 @@ void ZLEwlImageManager::convertImageDirectPng(const std::string &stringData, ZLI
+ 	for(int pass = 0; pass < number_passes; pass++) {
+ 		for(unsigned int y = 0; y < height; y++) {
+ 
+-			png_read_rows(png_ptr, (unsigned char **)&row, png_bytepp_NULL, 1);
++			png_read_rows(png_ptr, (unsigned char **)&row, NULL, 1);
+ 
+ 			c = ((ZLEwlImageData&)data).getImageData() + width * y;
+ 
+@@ -589,7 +589,7 @@ void ZLEwlImageManager::convertImageDirectPng(const std::string &stringData, ZLI
+ 
+ 	png_read_end(png_ptr, info_ptr);
+ 
+-	png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
++	png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+ }
+ 
+ struct gif_info {
+diff --git a/zlibrary/ui/src/ewl/library/ZLibrary.cpp b/zlibrary/ui/src/ewl/library/ZLibrary.cpp
+index 862e681..75cc58e 100644
+--- a/zlibrary/ui/src/ewl/library/ZLibrary.cpp
++++ b/zlibrary/ui/src/ewl/library/ZLibrary.cpp
+@@ -55,7 +55,7 @@ extern "C" {
+ #include <xcb/randr.h>
+ }
+ 
+-extern const xcb_atom_t INTEGER;
++//extern xcb_atom_enum_t XCB_ATOM_INTEGER;
+ 
+ #define FBR_FIFO "/tmp/.FBReader-fifo"
+ #define PIDFILE "/tmp/fbreader.pid"
+@@ -652,7 +652,7 @@ void set_properties()
+ 			XCB_PROP_MODE_REPLACE, \
+ 			window, \
+ 			atoms[(__i__)].atom, \
+-			INTEGER, \
++			XCB_ATOM_INTEGER, \
+ 			32, \
+ 			1, \
+ 			(unsigned char*)&i); \
+@@ -681,7 +681,7 @@ void set_properties()
+ 			XCB_PROP_MODE_REPLACE,
+ 			screen->root,
+ 			atoms[12].atom,
+-			WINDOW,
++			XCB_WINDOW,
+ 			sizeof(xcb_window_t) * 8,
+ 			1,
+ 			(unsigned char*)&window);
+@@ -689,7 +689,7 @@ void set_properties()
+ 	xcb_change_property(connection,
+ 			XCB_PROP_MODE_REPLACE,
+ 			window,
+-			WM_NAME,
++			XCB_ATOM_WM_NAME,
+ 			atoms[0].atom,
+ 			8,
+ 			strlen("FBReader"),
+@@ -698,8 +698,8 @@ void set_properties()
+ 	xcb_change_property(connection,
+ 			XCB_PROP_MODE_REPLACE,
+ 			window,
+-			WM_CLASS,
+-			STRING,
++			XCB_ATOM_WM_CLASS,
++			XCB_ATOM_STRING,
+ 			8,
+ 			strlen("FBReader") * 2 + 2,
+ 			"FBReader\0FBReader");
+@@ -708,7 +708,7 @@ void set_properties()
+ 			XCB_PROP_MODE_REPLACE,
+ 			window,
+ 			atoms[13].atom,
+-			STRING,
++			XCB_ATOM_STRING,
+ 			8,
+ 			cover_image_file.length(),
+ 			cover_image_file.c_str());
