@@ -13,6 +13,8 @@ S = "${WORKDIR}/git/"
 
 PR = "r1"
 
+inherit pythonnative
+
 do_install_append() {
 	install -d ${D}/etc
 	install -m644 ${S}vendors/n516.conf ${D}/etc/eabout.conf
