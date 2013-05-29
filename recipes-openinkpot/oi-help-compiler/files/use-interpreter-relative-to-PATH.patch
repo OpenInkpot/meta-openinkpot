@@ -1,0 +1,24 @@
+From 685d9cbf6917bd607858544a6d716e96b86d6d86 Mon Sep 17 00:00:00 2001
+From: Sergiy Kibrik <sakib@meta.ua>
+Date: Wed, 29 May 2013 16:24:05 +0300
+Subject: [PATCH] use interpreter relative to PATH
+
+Remove hardcoded /usr/bin/python path, so different version of
+interpreter (e.g. from SDK) could be used.
+---
+ oi-help-compiler |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/oi-help-compiler b/oi-help-compiler
+index 6b3131d..6bbc8d1 100755
+--- a/oi-help-compiler
++++ b/oi-help-compiler
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/env python
+ import os
+ import sys
+ from babel.messages.catalog import Catalog
+-- 
+1.7.9.5
+
