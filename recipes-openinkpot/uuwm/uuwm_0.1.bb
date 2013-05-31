@@ -17,8 +17,8 @@ PR = "r1"
 do_install () {
 	oe_runmake install DESTDIR=${D} PREFIX=/usr
 
-	install -d ${D}/etc/Xsession.d
-	install -m 0644 ${S}/debian/05uuwm ${D}/etc/Xsession.d/
+	install -d ${D}/etc/X11/Xsession.d
+	install -m 0644 ${S}/debian/05uuwm ${D}/etc/X11/Xsession.d/
 }
 
 PARALLEL_MAKE = ""
