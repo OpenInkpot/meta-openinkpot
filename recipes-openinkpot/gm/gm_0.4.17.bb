@@ -1,6 +1,7 @@
 DESCRIPTION = "Global Menu"
 SECTION = "x11/application"
 DEPENDS = "ecore evas edje efreet liblanguage liblops libkeys libeoi xcb-util-wm"
+RDEPENDS_${PN} = "eabout madshelf"
 HOMEPAGE = "http://www.openinkpot.org"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://${S}/COPYING;md5=751419260aa954499f7abaabaa882bbe"
