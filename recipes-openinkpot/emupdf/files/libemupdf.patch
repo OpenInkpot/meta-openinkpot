@@ -1,0 +1,43 @@
+diff --git a/epdf.pc.in b/epdf.pc.in
+index 879b946..e9ab2a3 100644
+--- a/epdf.pc.in
++++ b/epdf.pc.in
+@@ -7,5 +7,5 @@ Name: emupdf
+ Description: Enlightenment Foundations Library based pdf renderer, based on MuPDF.
+ Requires: @requirements_emupdf@
+ Version: @PACKAGE_VERSION@
+-Libs: -L${libdir} -lepdf
+-Cflags: -I${includedir}/epdf
++Libs: -L${libdir} -lemupdf
++Cflags: -I${includedir}/emupdf
+diff --git a/src/lib/Makefile.am b/src/lib/Makefile.am
+index ed3b60c..6205b37 100644
+--- a/src/lib/Makefile.am
++++ b/src/lib/Makefile.am
+@@ -1,6 +1,6 @@
+ MAINTAINERCLEANFILES = Makefile.in
+ 
+-lib_LTLIBRARIES = libepdf.la
++lib_LTLIBRARIES = libemupdf.la
+ 
+ EPDFHEADERS = \
+ Epdf.h \
+@@ -16,14 +16,14 @@ PRIVATEHEADERS = epdf_private.h
+ installed_headersdir = $(prefix)/include/epdf
+ installed_headers_DATA = $(EPDFHEADERS)
+ 
+-libepdf_la_SOURCES = \
++libemupdf_la_SOURCES = \
+ epdf_document.c \
+ epdf_page.c \
+ epdf_index.c \
+ epdf_main.c
+ 
+-libepdf_la_CPPFLAGS = @EPDF_CFLAGS@
+-libepdf_la_LIBADD = @EPDF_LIBS@
+-libepdf_la_LDFLAGS = -no-undefined -version-info @version_info@
++libemupdf_la_CPPFLAGS = @EPDF_CFLAGS@
++libemupdf_la_LIBADD = @EPDF_LIBS@
++libemupdf_la_LDFLAGS = -no-undefined -version-info @version_info@
+ 
+ EXTRA_DIST = $(EPDFHEADERS) $(PRIVATEHEADERS)
