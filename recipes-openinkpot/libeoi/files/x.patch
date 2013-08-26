@@ -33,7 +33,7 @@ index bfe70ea..11cf6c0 100644
 +#eoi_test_SOURCES = eoi_test.c
 +#eoi_test_LDFLAGS = @EFL_LIBS@ @ECORE_EVAS_LIBS@ libeoi.la
 diff --git a/src/libeoi.c b/src/libeoi.c
-index 720fbfd..a7214a5 100644
+index 720fbfd..c350e8b 100644
 --- a/src/libeoi.c
 +++ b/src/libeoi.c
 @@ -70,7 +70,7 @@ static bool numbering_enabled;
@@ -45,16 +45,15 @@ index 720fbfd..a7214a5 100644
  
  static void
  _eoi_numbering_read_config()
-@@ -99,6 +99,8 @@ _eoi_numbering_read_config()
+@@ -99,6 +99,7 @@ _eoi_numbering_read_config()
  static bool
  _is_currently_hinted()
  {
-+	int w, h;
-+
++    int w, h;
      if (!numbering_enabled)
          return false;
  
-@@ -106,12 +108,10 @@ _is_currently_hinted()
+@@ -106,12 +107,11 @@ _is_currently_hinted()
          return true;
  
      Ecore_X_Window root = ecore_x_window_root_first_get();
@@ -62,8 +61,9 @@ index 720fbfd..a7214a5 100644
 -    ecore_x_randr_get_screen_info_fetch();
 -    Ecore_X_Randr_Rotation r = ecore_x_randr_screen_rotation_get(root);
 -    Ecore_X_Screen_Size s = ecore_x_randr_current_screen_size_get(root);
++    Ecore_X_Screen *screen = ecore_x_default_screen_get();
 +    Ecore_X_Randr_Orientation r = ecore_x_randr_screen_primary_output_orientations_get(root);
-+	ecore_x_screen_size_get(root, &w, &h);
++    ecore_x_screen_size_get(screen, &w, &h);
  
 -    return !(width == s.width && height == s.height && rotation == r);
 +    return !(width == w && height == h && rotation == r);
