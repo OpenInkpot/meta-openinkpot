@@ -3,5 +3,8 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI += "file://make_logdir.patch"
 
-PACKAGECONFIG ??= "x11-fbdev"
-PACKAGECONFIG[x11-fbdev] = "--disable-xorg --enable-kdrive --enable-kdrive-evdev,,,xserver-xorg-fbdev xkeyboard-config x11-common"
+RDEPENDS_${PN}-fbdev += "xkeyboard-config x11-common"
+EXTRA_OECONF += "--disable-xorg \
+		--enable-kdrive \
+		--enable-kdrive-evdev \
+"
