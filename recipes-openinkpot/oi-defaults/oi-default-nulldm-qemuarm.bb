@@ -9,7 +9,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 do_install() {
 	install -d ${D}/etc/default
-	echo "SERVER_ARGS=\""${OI_NULLDM_SERVER_ARGS} "-screen 640x480 -nocursor\"" > ${D}/etc/default/nulldm
+	echo "SERVER_ARGS=\""${OI_NULLDM_SERVER_ARGS} "-screen 640x480x8/8 -nocursor -render gray\"" > ${D}/etc/default/nulldm
 }
 
 FILES_${PN} = "/etc/default"
