@@ -3,7 +3,9 @@ PR .= ".1"
 DEPENDS += " libxcb xcb-util xcb-util-image xcb-util-renderutil fribidi"
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
-SRC_URI += "file://x.patch"
+SRC_URI += "file://x.patch \
+	    file://soft8_font.patch \
+"
 
 EXTRA_OECONF = "    --disable-rpath \
 					--disable-doc \
