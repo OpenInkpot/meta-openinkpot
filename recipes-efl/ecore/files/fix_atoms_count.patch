@@ -1,0 +1,29 @@
+diff --git a/src/lib/ecore_x/xcb/ecore_xcb_atoms.c b/src/lib/ecore_x/xcb/ecore_xcb_atoms.c
+index b01898f..6428dac 100644
+--- a/src/lib/ecore_x/xcb/ecore_xcb_atoms.c
++++ b/src/lib/ecore_x/xcb/ecore_xcb_atoms.c
+@@ -2,7 +2,7 @@
+ #include "ecore_x_atoms_decl.h"
+ 
+ /* NB: Increment if you add new atoms */
+-#define ECORE_X_ATOMS_COUNT 199
++#define ECORE_X_ATOMS_COUNT (sizeof(atom_items) / sizeof(Atom_Item))
+ 
+ /* local function prototypes */
+ 
+@@ -12,13 +12,12 @@ static xcb_intern_atom_cookie_t cookies[ECORE_X_ATOMS_COUNT];
+ void
+ _ecore_xcb_atoms_init(void)
+ {
+-   int i = 0, num = 0;
++   unsigned i = 0;
+ 
+    LOGFN(__FILE__, __LINE__, __FUNCTION__);
+    CHECK_XCB_CONN;
+ 
+-   num = (sizeof(atom_items) / sizeof(Atom_Item));
+-   for (i = 0; i < num; i++)
++   for (i = 0; i < ECORE_X_ATOMS_COUNT; i++)
+      {
+         cookies[i] =
+           xcb_intern_atom_unchecked(_ecore_xcb_conn, 0,
