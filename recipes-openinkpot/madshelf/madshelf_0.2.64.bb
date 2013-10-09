@@ -6,7 +6,9 @@ LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://${S}/COPYING;md5=393a5ca445f6965873eca0259a17f833"
 
 SRC_URI = "git://git.openinkpot.org/madshelf.git;protocol=git \
-			file://x.patch"
+			file://x.patch \
+			file://native_x_size.patch \
+"
 
 SRCREV = ""
 
