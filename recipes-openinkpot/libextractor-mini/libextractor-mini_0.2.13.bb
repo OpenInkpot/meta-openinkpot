@@ -6,7 +6,9 @@ LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://${S}/COPYING;md5=751419260aa954499f7abaabaa882bbe"
 
 SRC_URI = "git://git.openinkpot.org/libextractor-mini.git;protocol=git \
-			file://x.patch"
+			file://x.patch \
+			file://use_libdir.patch \
+"
 
 SRCREV = ""
 

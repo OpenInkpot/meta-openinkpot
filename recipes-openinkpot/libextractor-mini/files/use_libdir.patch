@@ -1,0 +1,38 @@
+From 7b5c03c3a9649df56b6f780a414327d6e3b9a656 Mon Sep 17 00:00:00 2001
+From: Sergiy Kibrik <sakib@meta.ua>
+Date: Wed, 9 Oct 2013 20:49:16 +0300
+Subject: [PATCH] use relative path to search for extractors
+
+Search extractors under LIBDIR to be able to install library to arbitrary location.
+---
+ src/lib/Makefile.am    |    3 ++-
+ src/lib/libextractor.c |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/lib/Makefile.am b/src/lib/Makefile.am
+index 2976861..f23d7c9 100644
+--- a/src/lib/Makefile.am
++++ b/src/lib/Makefile.am
+@@ -1,4 +1,5 @@
+-AM_CFLAGS=-Wall -Werror
++AM_CFLAGS=-Wall -Werror \
++		-DLIBDIR='"$(libdir)"'
+ 
+ lib_LTLIBRARIES = libextractor_mini.la
+ 
+diff --git a/src/lib/libextractor.c b/src/lib/libextractor.c
+index c4cbc37..ce4a154 100644
+--- a/src/lib/libextractor.c
++++ b/src/lib/libextractor.c
+@@ -33,7 +33,7 @@
+ 
+ #include "extractor-mini.h"
+ 
+-#define EXTRACTORS_DIR "/usr/lib/extractor-mini"
++#define EXTRACTORS_DIR LIBDIR"/extractor-mini"
+ 
+ /*
+  * Returns full path, not need to be freeed.
+-- 
+1.7.9.5
+
