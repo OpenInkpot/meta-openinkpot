@@ -1,5 +1,5 @@
 diff --git a/configure.in b/configure.in
-index 26b2a39..e567fb2 100644
+index 26b2a39..2ed8625 100644
 --- a/configure.in
 +++ b/configure.in
 @@ -7,7 +7,7 @@ AM_PROG_LIBTOOL
@@ -7,7 +7,7 @@ index 26b2a39..e567fb2 100644
  PKG_PROG_PKG_CONFIG
  
 -PKG_CHECK_MODULES(EFL, [eina-0 ecore-evas ecore-config efreet efreet-mime edje])
-+PKG_CHECK_MODULES(EFL, [eina ecore-evas ecore efreet efreet-mime edje])
++PKG_CHECK_MODULES(EFL, [eina ecore-evas ecore ecore-x ecore-file ecore-con evas efreet efreet-mime edje])
  PKG_CHECK_MODULES(EXTRACT, [libextractor_mini])
  PKG_CHECK_MODULES(SQLITE, [sqlite3])
  PKG_CHECK_MODULES(LIBCHOICEBOX, [libchoicebox])
