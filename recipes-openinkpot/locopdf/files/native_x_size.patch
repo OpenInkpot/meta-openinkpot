@@ -1,0 +1,72 @@
+From 407e84d4de550074ab9c6c90cdd4da498506ddfb Mon Sep 17 00:00:00 2001
+From: Sergiy Kibrik <sakib@meta.ua>
+Date: Tue, 15 Oct 2013 21:22:53 +0300
+Subject: [PATCH] use native screen resolution
+
+Remove hard-coded 600x800 and use actual X display size
+---
+ src/locopdf.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/src/locopdf.c b/src/locopdf.c
+index b6e1a71..a2e0852 100644
+--- a/src/locopdf.c
++++ b/src/locopdf.c
+@@ -88,8 +88,8 @@ int bottomtrim = 0;
+ 
+ int panx = 0;
+ int pany = 0;
+-int winwidth = 600;
+-int winheight = 800;
++int winwidth = 0;
++int winheight = 0;
+ 
+ plugin_ops_t *loco_ops = NULL;
+ 
+@@ -1059,12 +1059,14 @@ main(int argc, char *argv[])
+         return 1;
+     }
+ 
++    ecore_x_init(NULL);
+     ecore_init();
+     ecore_con_init();
+ 
+     if (check_running_instance(argv[1])) {
+         ecore_con_shutdown();
+         ecore_shutdown();
++        ecore_x_shutdown();
+         return 0;
+     }
+ 
+@@ -1098,8 +1100,11 @@ main(int argc, char *argv[])
+     if (dbres != (-1))
+         restore_global_settings(argv[1]);
+ 
++    Ecore_X_Screen *screen = ecore_x_default_screen_get();
++    ecore_x_screen_size_get(screen, &winwidth, &winheight);
++
+     /* create our Ecore_Evas and show it */
+-    ee = ecore_evas_software_x11_8_new(0, 0, 0, 0, 600, 800);
++    ee = ecore_evas_software_x11_8_new(0, 0, 0, 0, winwidth, winheight);
+ 
+     ecore_evas_borderless_set(ee, 0);
+     ecore_evas_shaped_set(ee, 0);
+@@ -1116,7 +1121,7 @@ main(int argc, char *argv[])
+     bg = evas_object_rectangle_add(evas);
+     evas_object_color_set(bg, 255, 255, 255, 255);
+     evas_object_move(bg, 0, 0);
+-    evas_object_resize(bg, 600, 800);
++    evas_object_resize(bg, winwidth, winheight);
+     evas_object_name_set(bg, "background");
+     evas_object_focus_set(bg, 1);
+     evas_object_event_callback_add(bg, EVAS_CALLBACK_KEY_UP, _key_handler,
+@@ -1168,5 +1173,6 @@ main(int argc, char *argv[])
+     ecore_evas_shutdown();
+     ecore_con_shutdown();
+     ecore_shutdown();
++    ecore_x_shutdown();
+     evas_shutdown();
+ }
+-- 
+1.7.9.5
+
