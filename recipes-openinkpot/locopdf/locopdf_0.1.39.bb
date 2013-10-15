@@ -1,6 +1,7 @@
 DESCRIPTION = "pdf/djvu reader"
 SECTION = "x11/application"
-DEPENDS = "ecore evas edje emupdf edjvu libeoi libkeys"
+DEPENDS = "oi-help-compiler-native"
+RDEPENDS_${PN} = "ecore evas edje emupdf edjvu libeoi libkeys"
 HOMEPAGE = "http://www.openinkpot.org"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://${S}/COPYING;md5=393a5ca445f6965873eca0259a17f833"
@@ -14,7 +15,7 @@ S = "${WORKDIR}/git/"
 
 PR = "r1"
 
-inherit autotools gettext
+inherit autotools gettext pythonnative
 
 do_install_append() {
 	mkdir -p ${D}/etc/keys
