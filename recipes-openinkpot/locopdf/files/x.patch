@@ -1,17 +1,15 @@
 diff --git a/Makefile.am b/Makefile.am
-index f8706c8..a9328eb 100644
+index f8706c8..ebff05b 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -3,6 +3,6 @@ SUBDIRS = src themes data po help
- desktopdir = $(datarootdir)/applications
+@@ -4,5 +4,5 @@ desktopdir = $(datarootdir)/applications
  desktop_DATA = po/locopdf.desktop
  
--install-exec-hook:
+ install-exec-hook:
 -	mkdir -p ${DESTDIR}/usr/share/help/locopdf
 -	oi-help-compiler -u $(srcdir)/help ${DESTDIR}/usr/share/help/locopdf
-+#install-exec-hook:
-+#	mkdir -p ${DESTDIR}/usr/share/help/locopdf
-+#	oi-help-compiler -u $(srcdir)/help ${DESTDIR}/usr/share/help/locopdf
++	mkdir -p ${DESTDIR}/${datadir}/help/locopdf
++	oi-help-compiler -u $(srcdir)/help ${DESTDIR}/${datadir}/help/locopdf
 diff --git a/configure.ac b/configure.ac
 index a35c0dd..43b83ff 100644
 --- a/configure.ac
