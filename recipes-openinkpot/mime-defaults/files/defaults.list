@@ -1,0 +1,24 @@
+[Default Applications]
+application/pdf=locopdf.desktop;
+image/vnd.djvu=locopdf.desktop;
+image/x-pixmap=madeye.desktop;
+image/png=madeye.desktop;
+image/jpeg=madeye.desktop;
+image/gif=madeye.desktop;
+application/prs.plucker=FBReader.desktop;
+application/oebps-package+xml=FBReader.desktop;
+text/plain=FBReader.desktop;
+application/x-ztxt+palm-database=FBReader.desktop;
+application/x-aportisdoc=FBReader.desktop;
+application/x-psion-compressed-text=FBReader.desktop;
+application/x-mobipocket-ebook=FBReader.desktop;
+application/x-chm;application/rtf=FBReader.desktop;
+application/x-gzip=FBReader.desktop;
+application/x-bzip=FBReader.desktop;
+application/x-tar=FBReader.desktop;
+application/zip=FBReader.desktop;
+application/epub+zip=FBReader.desktop;
+application/x-fictionbook+xml=FBReader.desktop;
+application/x-zip-compressed-fb2=FBReader.desktop;
+text/html;application/xhtml+xml=FBReader.desktop;
+
