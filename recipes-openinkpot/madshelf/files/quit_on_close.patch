@@ -1,0 +1,27 @@
+From b6ad75363f05da7d79d3ce4b13b806a61fcaa9fb Mon Sep 17 00:00:00 2001
+From: Sergiy Kibrik <sakib@meta.ua>
+Date: Fri, 18 Oct 2013 14:00:04 +0300
+Subject: [PATCH] quit the main loop on close
+
+After quit is requested madshelf process doesn't stop and it seems
+that the only way to terminate it is to send signal. This looks wrong,
+so for now close handler will quit the app.
+---
+ src/main.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/main.c b/src/main.c
+index 8618915..27372eb 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -188,6 +188,7 @@ static void contents_close_handler(Evas_Object* choicebox, void* param)
+     madshelf_state_t* state = (madshelf_state_t*)param;
+     if(state->loc->request_exit)
+         (*state->loc->request_exit)(state, choicebox);
++    ecore_main_loop_quit();
+ }
+ 
+ static void main_win_close_handler(Ecore_Evas* main_win)
+-- 
+1.7.9.5
+
