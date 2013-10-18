@@ -22,7 +22,7 @@ inherit autotools gettext
 
 do_install_append() {
 	install -d -m 755  ${D}/etc/X11/Xsession.d
-		install -m 755 ${S}/debian/Xsession ${D}/etc/X11/Xsession.d/99gm
+		install -m 755 ${S}/debian/Xsession ${D}/etc/X11/Xsession.d/90gm
 		install -m 755 ${S}/debian/cur-user ${D}/etc/X11/Xsession.d/08cur-user
 		mkdir -p ${D}/usr/share/keys/help
 		install -m 644 ${S}/gm_help.ini ${D}/usr/share/keys/help/gm.ini
