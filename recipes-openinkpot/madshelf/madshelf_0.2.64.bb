@@ -33,10 +33,13 @@ do_install_append() {
 
 	#mkdir -p ${D}/etc/keys
 	#install -m 0644 ${S}/debian/prs505-keys.ini ${D}/etc/keys/madshelf.ini
+
+	mkdir -p ${D}/mnt/storage
+	mkdir -p ${D}/media/sd
 }
 
 # TODO: add separate package with data
 
 PACKAGES = "${PN}-dbg ${PN}"
-FILES_${PN} += " /usr/share /etc/keys /etc/madshelf"
+FILES_${PN} += " /usr/share /etc/keys /etc/madshelf /mnt/storage /media/sd"
 FILES_${PN}-dbg += " /usr/lib/madshelf/positions/.debug usr/lib/madshelf/positions/positions_*.a"
