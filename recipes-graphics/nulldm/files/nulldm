@@ -26,10 +26,14 @@ trap_exit() {
     kill $XINIT_PID
     exit $RETVAL
 }
-trap trap_exit HUP PIPE INT QUIT TERM
 
-while :; do
-    xinit $SESSION -- $SERVER $DISPLAY $SERVER_ARGS&
-    XINIT_PID=$!
-    wait
-done
+nulldm_process() {
+	while :; do
+	    xinit $SESSION -- $SERVER $DISPLAY $SERVER_ARGS&
+	    XINIT_PID=$!
+	    wait
+	done
+}
+
+trap trap_exit HUP PIPE INT QUIT TERM
+nulldm_process &
