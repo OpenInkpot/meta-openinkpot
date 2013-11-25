@@ -1,0 +1,43 @@
+From 1d52a75cbe81e68ad610cf4696afb5a76ed00ebb Mon Sep 17 00:00:00 2001
+From: Sergiy Kibrik <sakib@meta.ua>
+Date: Mon, 25 Nov 2013 23:19:53 +0200
+Subject: [PATCH 2/2] fix division by zero
+
+factor divisor value in floyd_steinberg_dither() not preserved from being 0.
+Thus in case of xcb_pal_colours > 256 it leads to div0 exception.
+Moreover, value of xcb_pal_colours == 257 doesn't seem sane, so quick fix
+is to calculate it begining from 0 (but not sure if it's right way)
+---
+ zlibrary/ui/src/ewl/image/ZLEwlImageManager.cpp |    2 +-
+ zlibrary/ui/src/ewl/view/ZLEwlViewWidget.cpp    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/zlibrary/ui/src/ewl/image/ZLEwlImageManager.cpp b/zlibrary/ui/src/ewl/image/ZLEwlImageManager.cpp
+index fa83a5b..56400c9 100644
+--- a/zlibrary/ui/src/ewl/image/ZLEwlImageManager.cpp
++++ b/zlibrary/ui/src/ewl/image/ZLEwlImageManager.cpp
+@@ -119,7 +119,7 @@ void floyd_steinberg_dither(ZLImageData &data)
+ 	int quant_error;
+ 
+ 	extern int xcb_pal_colours;
+-	int factor = 255 / (xcb_pal_colours - 1);
++	int factor = 255 / (xcb_pal_colours - 1) ? : 1;
+ 	int factor_half = factor>>1;
+ 
+ 	for(int j = 0; j < h; j++)
+diff --git a/zlibrary/ui/src/ewl/view/ZLEwlViewWidget.cpp b/zlibrary/ui/src/ewl/view/ZLEwlViewWidget.cpp
+index 127d481..c32aadb 100644
+--- a/zlibrary/ui/src/ewl/view/ZLEwlViewWidget.cpp
++++ b/zlibrary/ui/src/ewl/view/ZLEwlViewWidget.cpp
+@@ -192,7 +192,7 @@ ZLEwlViewWidget::ZLEwlViewWidget(ZLApplication *application, ZLView::Angle initi
+ 
+ 	xcb_alloc_color_reply_t *rep;
+ 	xcb_alloc_color_cookie_t color_rq[256];
+-	xcb_pal_colours = 1;
++	xcb_pal_colours = 0;
+ 
+ 	for (int i = 0; i < 256; i++)
+ 		color_rq[i] = xcb_alloc_color(connection, colormap, i<<8, i<<8, i<<8);
+-- 
+1.7.9.5
+

@@ -7,7 +7,9 @@ LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6"
 
 SRC_URI = "git://git.openinkpot.org/fbreader.git;protocol=git \
-			file://x.patch"
+			file://x.patch \
+			file://fix_div0.patch \
+"
 
 SRCREV = ""
 
