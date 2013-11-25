@@ -1,7 +1,8 @@
 DESCRIPTION = "FBReader"
 SECTION = "x11/application"
 #DEPENDS = "expat libjpeg libpng libgif eina evas ecore efreet edje glib2.0 pango1.0 liblinebreak fribidi xcb xcb-util xcb-util-wm sqlite3"
-DEPENDS = "eina evas ecore efreet edje linebreak libeoi"
+DEPENDS = "oi-help-compiler-native"
+RDEPENDS_${PN} = "eina evas ecore efreet edje linebreak libeoi"
 HOMEPAGE = "http://www.openinkpot.org"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6"
@@ -17,6 +18,8 @@ SRCREV = ""
 S = "${WORKDIR}/git/"
 
 PR = "r1"
+
+inherit pythonnative
 
 do_compile() {
 	oe_runmake -C zlibrary/core ROOTDIR=${S} TARGET_ARCH=desktop UI_TYPE=ewl
@@ -49,9 +52,8 @@ do_install() {
 	install -m 644 fbreader_help.ini ${D}/usr/share/keys/help/fbreader.ini
 
 	mkdir -p ${D}/usr/share/help/fbreader
+	oi-help-compiler -u ${S}/help ${D}/usr/share/help/fbreader
 
-	# TODO: add oi-help-compiler
-	#oi-help-compiler -u help ${DEB_DIR}/fbreader/usr/share/help/fbreader
 	for FLAVOUR in n516; do \
 		DEFAULT_DIR=${D}/usr/share/FBReader/default; \
 			mkdir -p $DEFAULT_DIR; \
