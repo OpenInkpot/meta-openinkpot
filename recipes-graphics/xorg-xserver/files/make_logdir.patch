@@ -1,9 +1,0 @@
---- a/hw/kdrive/Makefile.am	2010-06-06 04:16:48.000000000 +0300
-+++ b/hw/kdrive/Makefile.am	2013-05-31 21:36:19.095852941 +0300
-@@ -28,3 +28,6 @@
- 
- relink:
- 	$(AM_V_at)for i in $(SERVER_SUBDIRS) ; do $(MAKE) -C $$i relink || exit 1 ; done
-+
-+install-data-local:
-+	mkdir -p $(DESTDIR)$(logdir)

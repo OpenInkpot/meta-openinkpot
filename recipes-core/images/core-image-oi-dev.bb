@@ -1,4 +1,4 @@
-require core-image-x11-dev.bb
+require core-image-wl-dev.bb
 DESCRIPTION = "Core OpenInkpot libs, apps & tools"
 LICENSE = "MIT"
 IMAGE_INSTALL_append = " oi-hotplug uuwm fbreader gm locopdf mupdf uk nulldm language-selector liberation-fonts mime-defaults shared-mime-info kernel-modules"
