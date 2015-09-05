@@ -1,0 +1,45 @@
+From a1cd167e8f550bb6cb1f97cde371c610c483fe51 Mon Sep 17 00:00:00 2001
+From: Sergiy Kibrik <sakib@meta.ua>
+Date: Sat, 9 Jul 2016 00:33:40 +0300
+Subject: [PATCH] cmake: use CMAKE_INSTALL_* variables
+
+Replace hard-coded installation directories with cmake-provided
+variables, which gives more flexibility on where to install
+final binaries. Great simplification for usage with e.g. BitBake recipes.
+
+Signed-off-by: Sergiy Kibrik <sakib@meta.ua>
+---
+ CMakeLists.txt | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 7123096..d33f12a 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,6 +1,7 @@
+ cmake_minimum_required(VERSION 2.6)
+ 
+ PROJECT(ubus C)
++INCLUDE(GNUInstallDirs)
+ ADD_DEFINITIONS(-Os -Wall -Werror --std=gnu99 -g3 -Wmissing-declarations)
+ 
+ OPTION(BUILD_LUA "build Lua plugin" ON)
+@@ -45,11 +46,11 @@ ADD_SUBDIRECTORY(lua)
+ ADD_SUBDIRECTORY(examples)
+ 
+ INSTALL(TARGETS ubus cli
+-	LIBRARY DESTINATION lib
+-	RUNTIME DESTINATION bin
++	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+ )
+ INSTALL(TARGETS ubusd
+-	RUNTIME DESTINATION sbin
++	RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
+ )
+ 
+-INSTALL(FILES ubusmsg.h ubus_common.h libubus.h DESTINATION include)
++INSTALL(FILES ubusmsg.h ubus_common.h libubus.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+-- 
+1.9.1
+
