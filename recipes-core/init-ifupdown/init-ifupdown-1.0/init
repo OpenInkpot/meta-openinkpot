@@ -1,0 +1,17 @@
+#!/bin/sh /etc/rc.common
+
+START=20
+STOP=80
+PATH="/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
+
+start() {
+	[ -x /sbin/ifup ] || return 1
+	ifup lo
+	(ifconfig usb0 1>/dev/null 2>&1) || return 0
+	ifup usb0
+}
+
+stop() {
+	ifdown usb0 2>/dev/null
+	ifdown lo
+}
