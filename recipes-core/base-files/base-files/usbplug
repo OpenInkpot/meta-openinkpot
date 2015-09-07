@@ -1,0 +1,14 @@
+#!/bin/sh
+#TODO: handle USB storage case
+
+PATH="/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
+
+if [ $1 -eq "1" ]; then
+	modprobe -s g_ether
+	/etc/init.d/networking start
+	/etc/init.d/dropbear start
+else
+	/etc/init.d/dropbear stop
+	/etc/init.d/networking stop
+	rmmod g_ether
+fi
