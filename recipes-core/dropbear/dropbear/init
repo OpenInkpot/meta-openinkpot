@@ -1,0 +1,66 @@
+#!/bin/sh /etc/rc.common
+
+#
+# Do not configure this file. Edit /etc/default/dropbear instead!
+#
+
+START=23
+STOP=70
+USE_PROCD=1
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/usr/sbin/dropbear
+CONF=/etc/default/dropbear
+DROPBEAR_PORT=22
+DROPBEAR_RSAKEY_DEFAULT="/etc/dropbear/dropbear_rsa_host_key"
+DROPBEAR_DSSKEY_DEFAULT="/etc/dropbear/dropbear_dss_host_key"
+DROPBEAR_EXTRA_ARGS=
+NO_START=0
+
+load_dropbear_config(){
+	test -r $CONF && . $CONF
+}
+
+gen_keys() {
+for t in $DROPBEAR_KEYTYPES; do
+	case $t in
+	rsa)
+		if [ -f "$DROPBEAR_RSAKEY" -a ! -s "$DROPBEAR_RSAKEY" ]; then
+			rm $DROPBEAR_RSAKEY || true
+		fi
+		test -f $DROPBEAR_RSAKEY || dropbearkey -t rsa -f $DROPBEAR_RSAKEY
+	;;
+	dsa)
+		if [ -f "$DROPBEAR_DSSKEY" -a ! -s "$DROPBEAR_DSSKEY" ]; then
+			rm $DROPBEAR_DSSKEY || true
+		fi
+		test -f $DROPBEAR_DSSKEY || dropbearkey -t dss -f $DROPBEAR_DSSKEY
+	;;
+	esac
+done
+}
+
+start_service(){
+	test -x "$DAEMON" || return
+	load_dropbear_config
+	test "$NO_START" = "0" || return
+	test -z "$DROPBEAR_BANNER" || \
+		DROPBEAR_EXTRA_ARGS="$DROPBEAR_EXTRA_ARGS -b $DROPBEAR_BANNER"
+	test -n "$DROPBEAR_RSAKEY" || \
+		DROPBEAR_RSAKEY=$DROPBEAR_RSAKEY_DEFAULT
+	test -n "$DROPBEAR_DSSKEY" || \
+		DROPBEAR_DSSKEY=$DROPBEAR_DSSKEY_DEFAULT
+	test -n "$DROPBEAR_KEYTYPES" || \
+		DROPBEAR_KEYTYPES="rsa"
+
+	gen_keys
+
+	KEY_ARGS=""
+	test -f $DROPBEAR_DSSKEY && KEY_ARGS="$KEY_ARGS -d $DROPBEAR_DSSKEY"
+	test -f $DROPBEAR_RSAKEY && KEY_ARGS="$KEY_ARGS -r $DROPBEAR_RSAKEY"
+	procd_open_instance
+	procd_set_param command $DAEMON $KEY_ARGS \
+		-p "$DROPBEAR_PORT" -F $DROPBEAR_EXTRA_ARGS
+	procd_set_param respawn
+	procd_set_param file $CONF
+	procd_close_instance
+}
