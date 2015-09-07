@@ -1,0 +1,72 @@
+#!/bin/sh /etc/rc.common
+
+START=12
+STOP=89
+
+USE_PROCD=1
+SYSLOG_CONF=/etc/syslog-startup.conf
+
+load_syslog_config(){
+	if [ ! -f $SYSLOG_CONF ]; then
+		# default: log to 16K shm circular buffer
+		SYSLOG_ARGS="-C"
+		return 0
+	fi
+
+	. $SYSLOG_CONF
+	LOG_LOCAL=0
+	LOG_REMOTE=0
+	for D in $DESTINATION; do
+		if [ "$D" = "buffer" ]; then
+			SYSLOG_ARGS="$SYSLOG_ARGS -C$BUFFERSIZE"
+			LOG_LOCAL=1
+		elif [ "$D" = "file" ]; then
+			if [ -n "$LOGFILE" ]; then
+				SYSLOG_ARGS="$SYSLOG_ARGS -O $LOGFILE"
+			fi
+			if [ -n "$ROTATESIZE" ]; then
+				SYSLOG_ARGS="$SYSLOG_ARGS -s $ROTATESIZE"
+			fi
+			if [ -n "$ROTATEGENS" ]; then
+				SYSLOG_ARGS="$SYSLOG_ARGS -b $ROTATEGENS"
+			fi
+			LOG_LOCAL=1
+		elif [ "$D" = "remote" ]; then
+			SYSLOG_ARGS="$SYSLOG_ARGS -R $REMOTE"
+			LOG_REMOTE=1
+		fi
+	done
+	if [ "$LOG_LOCAL" = "1" -a "$LOG_REMOTE" = "1" ]; then
+		SYSLOG_ARGS="$SYSLOG_ARGS -L"
+	fi
+	if [ "$REDUCE" = "yes" ]; then
+		SYSLOG_ARGS="$SYSLOG_ARGS -S"
+	fi
+	if [ "$DROPDUPLICATES" = "yes" ]; then
+		SYSLOG_ARGS="$SYSLOG_ARGS -D"
+	fi
+	if [ -n "$LOGLEVEL" ]; then
+		SYSLOG_ARGS="$SYSLOG_ARGS -l $LOGLEVEL"
+	fi
+}
+
+start_syslog_service() {
+	procd_open_instance
+	load_syslog_config
+	procd_set_param command /sbin/syslogd -n $SYSLOG_ARGS
+	procd_set_param respawn
+	procd_set_param file $SYSLOG_CONF
+	procd_close_instance
+}
+
+start_klogd_service() {
+	procd_open_instance
+	procd_set_param command /sbin/klogd -n
+	procd_set_param respawn
+	procd_close_instance
+}
+
+start_service() {
+	start_syslog_service
+	start_klogd_service
+}
