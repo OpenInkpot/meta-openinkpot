@@ -1,0 +1,35 @@
+From 3b6dda06c6e676dcd5706604e3e88f47d6ca9a75 Mon Sep 17 00:00:00 2001
+From: Sergiy Kibrik <sakib@meta.ua>
+Date: Fri, 23 Oct 2015 22:47:41 +0300
+Subject: [PATCH] compositor-fbdev: fix rgb8 format
+
+---
+ src/compositor-fbdev.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/compositor-fbdev.c b/src/compositor-fbdev.c
+index e703e0e..9df2f3b 100644
+--- a/src/compositor-fbdev.c
++++ b/src/compositor-fbdev.c
+@@ -270,8 +270,7 @@ calculate_pixman_format(struct fb_var_screeninfo *vinfo,
+ 	switch(finfo->visual) {
+ 		case FB_VISUAL_TRUECOLOR:
+ 		case FB_VISUAL_DIRECTCOLOR:
+-			if (vinfo->grayscale != 0)
+-				return 0;
++		case FB_VISUAL_STATIC_PSEUDOCOLOR:
+ 		break;
+ 		default:
+ 			return 0;
+@@ -298,7 +297,7 @@ calculate_pixman_format(struct fb_var_screeninfo *vinfo,
+ 
+ 	if (type == PIXMAN_TYPE_OTHER)
+ 		return 0;
+-
++	return PIXMAN_r3g3b2;
+ 	/* Build the format. */
+ 	return PIXMAN_FORMAT(vinfo->bits_per_pixel, type,
+ 	                     vinfo->transp.length,
+-- 
+1.9.1
+
