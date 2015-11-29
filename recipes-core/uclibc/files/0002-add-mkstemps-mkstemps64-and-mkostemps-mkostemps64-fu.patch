@@ -1,0 +1,484 @@
+From cf52289ddad91631306924525caf68185952fbb9 Mon Sep 17 00:00:00 2001
+From: Romain Naour <romain.naour@openwide.fr>
+Date: Sat, 1 Aug 2015 18:31:06 +0200
+Subject: [PATCH 2/2] add mkstemps, mkstemps64 and mkostemps, mkostemps64
+ functions
+
+Change __gen_tempname() prototype in order to pass the additional
+suffix lenght. In __gen_tempname() add a new check for suffixlen.
+Update some comments in the code.
+
+Signed-off-by: Romain Naour <romain.naour@openwide.fr>
+Signed-off-by: Waldemar Brodkorb <wbx@uclibc-ng.org>
+---
+ include/stdlib.h               | 49 ++++++++++++++++++++++++++++++++++++++++++
+ libc/misc/internals/tempname.c | 16 ++++++++------
+ libc/misc/internals/tempname.h |  3 ++-
+ libc/stdio/tempnam.c           |  2 +-
+ libc/stdio/tmpfile.c           |  2 +-
+ libc/stdio/tmpnam.c            |  2 +-
+ libc/stdio/tmpnam_r.c          |  2 +-
+ libc/stdlib/Makefile.in        |  6 +++---
+ libc/stdlib/mkdtemp.c          |  2 +-
+ libc/stdlib/mkostemp.c         |  2 +-
+ libc/stdlib/mkostemp64.c       |  3 ++-
+ libc/stdlib/mkostemps.c        | 36 +++++++++++++++++++++++++++++++
+ libc/stdlib/mkostemps64.c      | 34 +++++++++++++++++++++++++++++
+ libc/stdlib/mkstemp.c          |  2 +-
+ libc/stdlib/mkstemp64.c        |  2 +-
+ libc/stdlib/mkstemps.c         | 33 ++++++++++++++++++++++++++++
+ libc/stdlib/mkstemps64.c       | 33 ++++++++++++++++++++++++++++
+ libc/stdlib/mktemp.c           |  2 +-
+ libpthread/nptl/sem_open.c     |  2 +-
+ 19 files changed, 211 insertions(+), 22 deletions(-)
+ create mode 100644 libc/stdlib/mkostemps.c
+ create mode 100644 libc/stdlib/mkostemps64.c
+ create mode 100644 libc/stdlib/mkstemps.c
+ create mode 100644 libc/stdlib/mkstemps64.c
+
+diff --git a/include/stdlib.h b/include/stdlib.h
+index b2d7020..12ef89c 100644
+--- a/include/stdlib.h
++++ b/include/stdlib.h
+@@ -642,6 +642,35 @@ extern int mkstemp64 (char *__template) __nonnull ((1)) __wur;
+ # endif
+ #endif
+ 
++#if defined __USE_MISC || defined __USE_XOPEN_EXTENDED
++# if defined __UCLIBC_SUSV3_LEGACY__
++extern char *mktemps (char *__template, int __suffixlen) __THROW __nonnull ((1)) __wur;
++# endif
++
++/* The mkstemps() function is like mkstemp(), except that  the  string  in
++   template  contains a suffix of suffixlen characters.  Thus, template is
++   of the form prefixXXXXXXsuffix, and the string XXXXXX  is  modified  as
++   for mkstemp().
++   Returns a file descriptor open on the file for reading and writing,
++   or -1 if it cannot create a uniquely-named file.
++
++   This function is a possible cancellation point and therefore not
++   marked with __THROW.  */
++# ifndef __USE_FILE_OFFSET64
++extern int mkstemps (char *__template, int __suffixlen) __nonnull ((1)) __wur;
++# else
++#  ifdef __REDIRECT
++extern int __REDIRECT (mkstemps, (char *__template, int __suffixlen), mkstemps64)
++     __nonnull ((1)) __wur;
++#  else
++#   define mkstemps mkstemps64
++#  endif
++# endif
++# ifdef __USE_LARGEFILE64
++extern int mkstemps64 (char *__template, int __suffixlen) __nonnull ((1)) __wur;
++# endif
++#endif
++
+ #if defined __USE_BSD || defined __USE_XOPEN2K8
+ /* Create a unique temporary directory from TEMPLATE.
+    The last six characters of TEMPLATE must be "XXXXXX";
+@@ -671,7 +700,27 @@ extern int __REDIRECT (mkostemp, (char *__template, int __flags), mkostemp64)
+ # ifdef __USE_LARGEFILE64
+ extern int mkostemp64 (char *__template, int __flags) __nonnull ((1)) __wur;
+ # endif
++#endif
+ 
++#ifdef __USE_GNU
++/* Generate a unique temporary file name from TEMPLATE similar to
++   mkostemp.  But allow the caller to pass additional file name suffix.
++
++   This function is a possible cancellation point and therefore not
++   marked with __THROW.  */
++# ifndef __USE_FILE_OFFSET64
++extern int mkostemps (char *__template, int __suffixlen, int __flags) __nonnull ((1)) __wur;
++# else
++#  ifdef __REDIRECT
++extern int __REDIRECT (mkostemps, (char *__template, int __suffixlen, int __flags), mkostemps64)
++     __nonnull ((1)) __wur;
++#  else
++#   define mkostemps mkostemps64
++#  endif
++# endif
++# ifdef __USE_LARGEFILE64
++extern int mkostemps64 (char *__template, int __suffixlen, int __flags) __nonnull ((1)) __wur;
++# endif
+ #endif
+ 
+ 
+diff --git a/libc/misc/internals/tempname.c b/libc/misc/internals/tempname.c
+index edcc31c..7654eb4 100644
+--- a/libc/misc/internals/tempname.c
++++ b/libc/misc/internals/tempname.c
+@@ -163,10 +163,10 @@ static void brain_damaged_fillrand(unsigned char *buf, unsigned int len)
+ 	}
+ }
+ 
+-/* Generate a temporary file name based on TMPL.  TMPL must match the
+-   rules for mk[s]temp (i.e. end in "XXXXXX").  The name constructed
+-   does not exist at the time of the call to __gen_tempname.  TMPL is
+-   overwritten with the result.
++/* Generate a temporary file name based on TMPL. TMPL must match the
++   rules for mk[s]temp[s] (i.e. end in "prefixXXXXXXsuffix"). The name
++   constructed does not exist at the time of the call to __gen_tempname.
++   TMPL is overwritten with the result.
+ 
+    KIND may be one of:
+    __GT_NOCREATE:       simply verify that the name does not exist
+@@ -177,7 +177,8 @@ static void brain_damaged_fillrand(unsigned char *buf, unsigned int len)
+    __GT_DIR:            create a directory with given mode.
+ 
+ */
+-int attribute_hidden __gen_tempname (char *tmpl, int kind, int flags, mode_t mode)
++int attribute_hidden __gen_tempname (char *tmpl, int kind, int flags,
++                                     int suffixlen, mode_t mode)
+ {
+     char *XXXXXX;
+     unsigned int i;
+@@ -187,8 +188,9 @@ int attribute_hidden __gen_tempname (char *tmpl, int kind, int flags, mode_t mod
+ 
+     len = strlen (tmpl);
+     /* This is where the Xs start.  */
+-    XXXXXX = tmpl + len - 6;
+-    if (len < 6 || strcmp (XXXXXX, "XXXXXX"))
++    XXXXXX = tmpl + len - 6 - suffixlen;
++    if (len < 6 || suffixlen < 0 || suffixlen > len - 6
++        || strncmp (XXXXXX, "XXXXXX", 6))
+     {
+ 	__set_errno (EINVAL);
+ 	return -1;
+diff --git a/libc/misc/internals/tempname.h b/libc/misc/internals/tempname.h
+index edfe26d..cc20f75 100644
+--- a/libc/misc/internals/tempname.h
++++ b/libc/misc/internals/tempname.h
+@@ -10,7 +10,8 @@ extern int ___path_search (char *tmpl, size_t tmpl_len, const char *dir,
+ 	        const char *pfx /*, int try_tmpdir */) attribute_hidden;
+ #define __path_search(tmpl, tmpl_len, dir, pfx, try_tmpdir) ___path_search(tmpl, tmpl_len, dir, pfx)
+ 
+-extern int __gen_tempname (char *__tmpl, int __kind, int flags, mode_t mode) attribute_hidden;
++extern int __gen_tempname (char *__tmpl, int __kind, int flags,
++                           int suffixlen, mode_t mode) attribute_hidden;
+ 
+ /* The __kind argument to __gen_tempname may be one of: */
+ #define __GT_FILE     0       /* create a file */
+diff --git a/libc/stdio/tempnam.c b/libc/stdio/tempnam.c
+index 74bb26e..0cb61ea 100644
+--- a/libc/stdio/tempnam.c
++++ b/libc/stdio/tempnam.c
+@@ -35,7 +35,7 @@ tempnam (const char *dir, const char *pfx)
+   if (__path_search (buf, FILENAME_MAX, dir, pfx, 1))
+     return NULL;
+ 
+-  if (__gen_tempname (buf, __GT_NOCREATE, 0, 0))
++  if (__gen_tempname (buf, __GT_NOCREATE, 0, 0, 0))
+     return NULL;
+ 
+   return strdup (buf);
+diff --git a/libc/stdio/tmpfile.c b/libc/stdio/tmpfile.c
+index 83c85b5..3654f9e 100644
+--- a/libc/stdio/tmpfile.c
++++ b/libc/stdio/tmpfile.c
+@@ -35,7 +35,7 @@ FILE * tmpfile (void)
+ 
+     if (__path_search (buf, FILENAME_MAX, NULL, "tmpf", 0))
+ 	return NULL;
+-    fd = __gen_tempname (buf, __GT_FILE, 0, S_IRUSR | S_IWUSR);
++    fd = __gen_tempname (buf, __GT_FILE, 0, 0, S_IRUSR | S_IWUSR);
+     if (fd < 0)
+ 	return NULL;
+ 
+diff --git a/libc/stdio/tmpnam.c b/libc/stdio/tmpnam.c
+index ffed862..ca67f57 100644
+--- a/libc/stdio/tmpnam.c
++++ b/libc/stdio/tmpnam.c
+@@ -40,7 +40,7 @@ tmpnam (char *s)
+ 			0))
+     return NULL;
+ 
+-  if (__builtin_expect (__gen_tempname (tmpbuf, __GT_NOCREATE, 0, 0), 0))
++  if (__builtin_expect (__gen_tempname (tmpbuf, __GT_NOCREATE, 0, 0, 0), 0))
+     return NULL;
+ 
+   if (s == NULL)
+diff --git a/libc/stdio/tmpnam_r.c b/libc/stdio/tmpnam_r.c
+index bfd60a4..97e7f4a 100644
+--- a/libc/stdio/tmpnam_r.c
++++ b/libc/stdio/tmpnam_r.c
+@@ -27,7 +27,7 @@ char * tmpnam_r (char *s)
+ 
+     if (__path_search (s, L_tmpnam, NULL, NULL, 0))
+ 	return NULL;
+-    if (__gen_tempname (s, __GT_NOCREATE, 0, 0))
++    if (__gen_tempname (s, __GT_NOCREATE, 0, 0, 0))
+ 	return NULL;
+ 
+     return s;
+diff --git a/libc/stdlib/Makefile.in b/libc/stdlib/Makefile.in
+index 880de78..c66d1ce 100644
+--- a/libc/stdlib/Makefile.in
++++ b/libc/stdlib/Makefile.in
+@@ -13,8 +13,8 @@ include $(top_srcdir)libc/stdlib/malloc-standard/Makefile.in
+ 
+ CSRC-y := \
+ 	abort.c getenv.c mkdtemp.c realpath.c canonicalize.c mkstemp.c mkostemp.c \
+-	rand.c random.c random_r.c setenv.c div.c ldiv.c lldiv.c \
+-	getpt.c drand48-iter.c jrand48.c \
++	mkstemps.c mkostemps.c rand.c random.c random_r.c setenv.c div.c ldiv.c \
++	lldiv.c getpt.c drand48-iter.c jrand48.c \
+ 	jrand48_r.c lcong48.c lrand48.c lrand48_r.c mrand48.c mrand48_r.c nrand48.c \
+ 	nrand48_r.c rand_r.c srand48.c srand48_r.c seed48.c seed48_r.c \
+ 	a64l.c l64a.c __uc_malloc.c
+@@ -22,7 +22,7 @@ CSRC-$(UCLIBC_SUSV2_LEGACY) += valloc.c
+ CSRC-$(UCLIBC_HAS_ADVANCED_REALTIME) += posix_memalign.c
+ CSRC-$(UCLIBC_HAS_PTY) += grantpt.c unlockpt.c ptsname.c
+ CSRC-$(UCLIBC_HAS_ARC4RANDOM) += arc4random.c
+-CSRC-$(UCLIBC_HAS_LFS) += mkstemp64.c mkostemp64.c
++CSRC-$(UCLIBC_HAS_LFS) += mkstemp64.c mkostemp64.c mkstemps64.c mkostemps64.c
+ CSRC-$(UCLIBC_HAS_FLOATS) += drand48.c drand48_r.c erand48.c erand48_r.c
+ CSRC-$(if $(findstring yy,$(UCLIBC_HAS_FLOATS)$(UCLIBC_SUSV3_LEGACY)),y) += \
+ 	gcvt.c
+diff --git a/libc/stdlib/mkdtemp.c b/libc/stdlib/mkdtemp.c
+index e6d4a36..185e206 100644
+--- a/libc/stdlib/mkdtemp.c
++++ b/libc/stdlib/mkdtemp.c
+@@ -29,7 +29,7 @@
+    (This function comes from OpenBSD.) */
+ char * mkdtemp (char *template)
+ {
+-  if (__gen_tempname (template, __GT_DIR, 0, S_IRUSR | S_IWUSR | S_IXUSR))
++  if (__gen_tempname (template, __GT_DIR, 0, 0, S_IRUSR | S_IWUSR | S_IXUSR))
+     return NULL;
+   else
+     return template;
+diff --git a/libc/stdlib/mkostemp.c b/libc/stdlib/mkostemp.c
+index 912be30..4eab079 100644
+--- a/libc/stdlib/mkostemp.c
++++ b/libc/stdlib/mkostemp.c
+@@ -28,5 +28,5 @@ int
+ mkostemp (char *template, int flags)
+ {
+   flags -= flags & O_ACCMODE; /* Remove O_RDONLY, O_WRONLY, and O_RDWR. */
+-  return __gen_tempname (template, __GT_FILE, flags, S_IRUSR | S_IWUSR);
++  return __gen_tempname (template, __GT_FILE, flags, 0, S_IRUSR | S_IWUSR);
+ }
+diff --git a/libc/stdlib/mkostemp64.c b/libc/stdlib/mkostemp64.c
+index c6d6d84..25595ad 100644
+--- a/libc/stdlib/mkostemp64.c
++++ b/libc/stdlib/mkostemp64.c
+@@ -27,5 +27,6 @@
+ int
+ mkostemp64 (char *template, int flags)
+ {
+-  return __gen_tempname (template, __GT_BIGFILE, flags | O_LARGEFILE, S_IRUSR | S_IWUSR | S_IXUSR);
++  return __gen_tempname (template, __GT_BIGFILE, flags | O_LARGEFILE, 0,
++                         S_IRUSR | S_IWUSR | S_IXUSR);
+ }
+diff --git a/libc/stdlib/mkostemps.c b/libc/stdlib/mkostemps.c
+new file mode 100644
+index 0000000..13a5171
+--- /dev/null
++++ b/libc/stdlib/mkostemps.c
+@@ -0,0 +1,36 @@
++/* Copyright (C) 1998-2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <fcntl.h>
++#include "../misc/internals/tempname.h"
++
++/* Generate a unique temporary file name from TEMPLATE.
++   The TEMPLATE is of the form "XXXXXXsuffix" where six characters
++   after the TEMPLATE must be "XXXXXX" followed by the suffix.
++   The suffix length must be specified with suffixlen.
++   "XXXXXX" are replaced with a string that makes the filename unique.
++   Then open the file and return a fd. */
++int mkostemps (char *template, int suffixlen, int flags)
++{
++  flags -= flags & O_ACCMODE; /* Remove O_RDONLY, O_WRONLY, and O_RDWR. */
++  return __gen_tempname (template, __GT_FILE, flags, suffixlen,
++                         S_IRUSR | S_IWUSR);
++}
++
++
+diff --git a/libc/stdlib/mkostemps64.c b/libc/stdlib/mkostemps64.c
+new file mode 100644
+index 0000000..0436fcf
+--- /dev/null
++++ b/libc/stdlib/mkostemps64.c
+@@ -0,0 +1,34 @@
++/* Copyright (C) 1998-2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <fcntl.h>
++#include "../misc/internals/tempname.h"
++
++/* Generate a unique temporary file name from TEMPLATE.
++   The TEMPLATE is of the form "XXXXXXsuffix" where six characters
++   after the TEMPLATE must be "XXXXXX" followed by the suffix.
++   The suffix length must be specified with suffixlen.
++   "XXXXXX" are replaced with a string that makes the filename unique.
++   Then open the file and return a fd. */
++int mkostemps64 (char *template, int suffixlen, int flags)
++{
++  flags -= flags & O_ACCMODE; /* Remove O_RDONLY, O_WRONLY, and O_RDWR. */
++  return __gen_tempname (template, __GT_FILE, flags, suffixlen,
++                         S_IRUSR | S_IWUSR);
++}
+diff --git a/libc/stdlib/mkstemp.c b/libc/stdlib/mkstemp.c
+index a3a1595..abcc93e 100644
+--- a/libc/stdlib/mkstemp.c
++++ b/libc/stdlib/mkstemp.c
+@@ -26,5 +26,5 @@
+    Then open the file and return a fd. */
+ int mkstemp (char *template)
+ {
+-    return __gen_tempname (template, __GT_FILE, 0, S_IRUSR | S_IWUSR);
++    return __gen_tempname (template, __GT_FILE, 0, 0, S_IRUSR | S_IWUSR);
+ }
+diff --git a/libc/stdlib/mkstemp64.c b/libc/stdlib/mkstemp64.c
+index 6f2ee3e..82c6da5 100644
+--- a/libc/stdlib/mkstemp64.c
++++ b/libc/stdlib/mkstemp64.c
+@@ -26,5 +26,5 @@
+    Then open the file and return a fd. */
+ int mkstemp64 (char *template)
+ {
+-    return __gen_tempname (template, __GT_BIGFILE, 0, S_IRUSR | S_IWUSR);
++    return __gen_tempname (template, __GT_BIGFILE, 0, 0, S_IRUSR | S_IWUSR);
+ }
+diff --git a/libc/stdlib/mkstemps.c b/libc/stdlib/mkstemps.c
+new file mode 100644
+index 0000000..22aebf4
+--- /dev/null
++++ b/libc/stdlib/mkstemps.c
+@@ -0,0 +1,33 @@
++/* Copyright (C) 1998-2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <sys/stat.h>
++#include "../misc/internals/tempname.h"
++
++/* Generate a unique temporary file name from TEMPLATE.
++   The TEMPLATE is of the form "XXXXXXsuffix" where six characters
++   after the TEMPLATE must be "XXXXXX" followed by the suffix.
++   The suffix length must be specified with suffixlen.
++   "XXXXXX" are replaced with a string that makes the filename unique.
++   Then open the file and return a fd. */
++int mkstemps (char *template, int suffixlen)
++{
++    return __gen_tempname (template, __GT_FILE, 0, suffixlen,
++                           S_IRUSR | S_IWUSR);
++}
+diff --git a/libc/stdlib/mkstemps64.c b/libc/stdlib/mkstemps64.c
+new file mode 100644
+index 0000000..19fb4c8
+--- /dev/null
++++ b/libc/stdlib/mkstemps64.c
+@@ -0,0 +1,33 @@
++/* Copyright (C) 1998-2012 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <sys/stat.h>
++#include "../misc/internals/tempname.h"
++
++/* Generate a unique temporary file name from TEMPLATE.
++   The TEMPLATE is of the form "XXXXXXsuffix" where six characters
++   after the TEMPLATE must be "XXXXXX" followed by the suffix.
++   The suffix length must be specified with suffixlen.
++   "XXXXXX" are replaced with a string that makes the filename unique.
++   Then open the file and return a fd. */
++int mkstemps64 (char *template, int suffixlen)
++{
++    return __gen_tempname (template, __GT_BIGFILE, 0, suffixlen,
++                           S_IRUSR | S_IWUSR);
++}
+diff --git a/libc/stdlib/mktemp.c b/libc/stdlib/mktemp.c
+index 1ff93da..4bc0d92 100644
+--- a/libc/stdlib/mktemp.c
++++ b/libc/stdlib/mktemp.c
+@@ -24,7 +24,7 @@
+  * they are replaced with a string that makes the filename unique.  */
+ char *mktemp(char *template)
+ {
+-	if (__gen_tempname (template, __GT_NOCREATE, 0, 0) < 0)
++	if (__gen_tempname (template, __GT_NOCREATE, 0,0, 0) < 0)
+ 		/* We return the null string if we can't find a unique file name.  */
+ 		template[0] = '\0';
+ 
+diff --git a/libpthread/nptl/sem_open.c b/libpthread/nptl/sem_open.c
+index 3a72079..5584557 100644
+--- a/libpthread/nptl/sem_open.c
++++ b/libpthread/nptl/sem_open.c
+@@ -336,7 +336,7 @@ sem_open (const char *name, int oflag, ...)
+       mempcpy (mempcpy (tmpfname, mountpoint.dir, mountpoint.dirlen),
+ 	"XXXXXX", 7);
+ 
+-      fd = __gen_tempname (tmpfname, __GT_FILE, 0, mode);
++      fd = __gen_tempname (tmpfname, __GT_FILE, 0, 0, mode);
+       if (fd == -1)
+         return SEM_FAILED;
+ 
+-- 
+1.9.1
+
