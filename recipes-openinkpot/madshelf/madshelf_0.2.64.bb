@@ -16,9 +16,6 @@ PR = "r1"
 inherit autotools gettext
 
 do_install_append() {
-	#rm -rf ${D}/usr/lib/madshelf/positions/.debug
-	rm -rf ${D}/usr/lib/madshelf/positions/*.a
-
 	mkdir -p ${D}/etc/madshelf
 	install -m 0644 ${S}/debian/disks.conf ${D}/etc/madshelf
 
@@ -36,6 +33,8 @@ do_install_append() {
 
 # TODO: add separate package with data
 
-PACKAGES = "${PN}-dbg ${PN}"
-FILES_${PN} += " /usr/share /etc/keys /etc/madshelf /mnt/storage /media/sd"
-FILES_${PN}-dbg += " /usr/lib/madshelf/positions/.debug usr/lib/madshelf/positions/positions_*.a"
+FILES_${PN} += "${sysconfdir}/keys ${sysconfdir}/madshelf \
+		${datadir} ${libdir}/madshelf/positions/*.so \
+		${base_prefix}/mnt/storage ${base_prefix}/media/sd"
+FILES_${PN}-dev += "${libdir}/madshelf/positions/*.la"
+FILES_${PN}-dbg += "${libdir}/madshelf/positions/.debug"
