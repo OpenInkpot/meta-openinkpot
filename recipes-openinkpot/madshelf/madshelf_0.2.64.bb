@@ -1,6 +1,6 @@
 DESCRIPTION = "Bookshelf application"
 SECTION = "x11/application"
-DEPENDS = "ecore evas edje efreet liblanguage liblops libkeys libeoi xcb-util-wm libextractor-mini"
+DEPENDS = "ecore evas edje efreet liblanguage liblops libkeys libeoi libextractor-mini"
 HOMEPAGE = "http://www.openinkpot.org"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://${S}/COPYING;md5=393a5ca445f6965873eca0259a17f833"
