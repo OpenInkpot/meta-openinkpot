@@ -5,13 +5,9 @@ HOMEPAGE = "http://www.openinkpot.org"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://${S}/COPYING;md5=393a5ca445f6965873eca0259a17f833"
 
-SRC_URI = "git://git.openinkpot.org/madshelf.git;protocol=git \
-			file://x.patch \
-			file://native_x_size.patch \
-			file://quit_on_close.patch \
-"
+SRC_URI = "git://github.com/OpenInkpot/madshelf.git;protocol=git"
 
-SRCREV = ""
+SRCREV = "master"
 
 S = "${WORKDIR}/git/"
 
