@@ -4,9 +4,9 @@ START=30
 PATH="/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
 
 start() {
-	[ -e /proc/mounts ] || return -1
-	grep -qs "/sys sysfs" /proc/mounts || return -1
-	[ -d /sys/class/power_supply/usb ] || return -1
+	[ -e /proc/mounts ] || return 1
+	grep -qs "/sys sysfs" /proc/mounts || return 1
+	[ -d /sys/class/power_supply/usb ] || return 1
 
 	_status=$(cat /sys/class/power_supply/usb/online)
 	[ $_status -eq "1" ] && /etc/hotplug.d/usbplug $_status
