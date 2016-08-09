@@ -5,10 +5,11 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 SRC_URI_append = "file://weston.ini \
 		  file://compositor \
 		  file://weston \
-		  file://rgb8_hack.patch \
-		  file://panel-location.patch \
 		  git://github.com/OpenInkpot/weston.git;branch=oi-1.5 \
 "
+
+#FIXME: this patch & this line is a hack
+SRC_URI_append_eb600 = "file://rgb8_hack.patch"
 
 SRCREV = "oi-1.5"
 
