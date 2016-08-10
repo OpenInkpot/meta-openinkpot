@@ -1,6 +1,6 @@
 DESCRIPTION = "Minimalistic metadata extractor"
 SECTION = "base"
-DEPENDS = "mupdf libzip libid3tag tremor"
+DEPENDS = "mupdf libzip libid3tag tremor pkgconfig-native"
 HOMEPAGE = "http://www.openinkpot.org"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://${S}/COPYING;md5=751419260aa954499f7abaabaa882bbe"
@@ -25,4 +25,6 @@ pkg_postinst_${PN}() {
 ln -sf /usr/lib/extractor-mini/libextractor_fb2.so /usr/lib/extractor-mini/libextractor_fb2_zip.so
 }
 
-FILES_${PN} += " /usr/lib/extractor-mini/libextractor_*.so"
+FILES_${PN} += "${libdir}/extractor-mini/libextractor_*.so"
+FILES_${PN}-dev += "${libdir}/extractor-mini/libextractor_*.la"
+FILES_${PN}-dbg += "${libdir}/extractor-mini/.debug/libextractor_*.so"
