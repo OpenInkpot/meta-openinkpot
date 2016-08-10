@@ -1,0 +1,34 @@
+From da13577897651a45a90a7ccb9b052a2b7754d43e Mon Sep 17 00:00:00 2001
+From: "Carsten Haitzler (Rasterman)" <raster@rasterman.com>
+Date: Tue, 26 Aug 2014 19:26:19 +0900
+Subject: [PATCH] wcore-wayland - fix screen size get
+
+based on https://review.tizen.org/gerrit/#/c/26077/ - but with
+comments, formatting changes and so on.
+---
+ src/lib/ecore_wayland/ecore_wl.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/src/lib/ecore_wayland/ecore_wl.c b/src/lib/ecore_wayland/ecore_wl.c
+index 9b63f2e..6d4b253 100644
+--- a/src/lib/ecore_wayland/ecore_wl.c
++++ b/src/lib/ecore_wayland/ecore_wl.c
+@@ -317,6 +317,15 @@ ecore_wl_screen_size_get(int *w, int *h)
+ 
+    _ecore_wl_init_wait();
+ 
++   // XXX: this code is dumb - screen size doesnt allow for > 1 output.
++   // the first sync is in case registry replies are not back yet
++   if (!_ecore_wl_disp->output)
++     {
++        // second sync is in case bound object replies in registry are not back
++        ecore_wl_sync();
++        if (!_ecore_wl_disp->output) ecore_wl_sync();
++     }
++
+    if (!_ecore_wl_disp->output) return;
+ 
+    switch (_ecore_wl_disp->output->transform)
+-- 
+1.9.1
+
