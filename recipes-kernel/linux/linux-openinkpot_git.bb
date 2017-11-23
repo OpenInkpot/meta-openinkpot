@@ -12,8 +12,6 @@ BRANCH="oi-${LINUX_VERSION}"
 SRC_URI = "git://github.com/OpenInkpot/linux.git;protocol=git;branch=${BRANCH}"
 SRCREV="${BRANCH}"
 
-KERNEL_IMAGETYPE="uImage"
-
 PR = "r1"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 
