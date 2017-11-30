@@ -5,10 +5,9 @@ HOMEPAGE = "http://www.openinkpot.org"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6"
 
-SRC_URI = "git://git.openinkpot.org/oi-help-compiler.git;protocol=git \
-		file://use-interpreter-relative-to-PATH.patch"
+SRC_URI = "git://github.com/OpenInkpot/oi-help-compiler.git;protocol=git"
 
-SRCREV = ""
+SRCREV = "master"
 
 S = "${WORKDIR}/git/"
 
