@@ -14,7 +14,7 @@ EXTRA_OECONF_append_class-target = " \
 	--with-x11=none \
 "
 PACKAGECONFIG = "luajit wayland"
-PACKAGECONFIG[wayland] = "--enable-wayland,--disable-wayland,wayland"
+PACKAGECONFIG[wayland] = "--enable-wayland,--disable-wayland,wayland libxkbcommon"
 # fix original bb: luajit must be in RDEPENDS as well, otherwise not installed
 PACKAGECONFIG[luajit] = "--disable-lua-old,--enable-lua-old,luajit,luajit"
 
