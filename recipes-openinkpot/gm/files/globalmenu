@@ -1,0 +1,15 @@
+#!/bin/sh /etc/rc.common
+
+START=40
+STOP=50
+
+USE_PROCD=1
+
+start_service() {
+	procd_open_instance
+	. /etc/profile.d/weston
+	procd_set_param env XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR
+	procd_set_param command /usr/bin/gm
+	procd_set_param respawn
+	procd_close_instance
+}
