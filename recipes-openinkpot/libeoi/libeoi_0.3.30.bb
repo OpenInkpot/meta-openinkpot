@@ -5,8 +5,7 @@ HOMEPAGE = "http://www.openinkpot.org"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://${S}/COPYING;md5=393a5ca445f6965873eca0259a17f833"
 
-SRC_URI = "git://github.com/OpenInkpot/libeoi.git;protocol=git \
-			file://x.patch"
+SRC_URI = "git://github.com/OpenInkpot/libeoi.git;protocol=git"
 
 SRCREV = "master"
 
