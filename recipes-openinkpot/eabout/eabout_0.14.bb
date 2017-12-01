@@ -20,6 +20,7 @@ do_install_append() {
 	install -m644 ${S}vendors/n516.conf ${D}/etc/eabout.conf
 }
 
-FILES_${PN} += " /usr/share"
+FILES_${PN} += "${datadir}/eoi ${datadir}/help ${datadir}/keys"
+FILES_${PN}-locale = "${datadir}/locale"
 
 inherit autotools gettext
