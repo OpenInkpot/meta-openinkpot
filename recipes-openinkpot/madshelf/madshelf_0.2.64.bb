@@ -34,7 +34,8 @@ do_install_append() {
 # TODO: add separate package with data
 
 FILES_${PN} += "${sysconfdir}/keys ${sysconfdir}/madshelf \
-		${datadir} ${libdir}/madshelf/positions/*.so \
+		${datadir}/eoi ${datadir}/keys ${libdir}/madshelf/positions/*.so \
 		${base_prefix}/mnt/storage ${base_prefix}/media/sd"
 FILES_${PN}-dev += "${libdir}/madshelf/positions/*.la"
 FILES_${PN}-dbg += "${libdir}/madshelf/positions/.debug"
+FILES_${PN}-locale = "${datadir}/locale"
