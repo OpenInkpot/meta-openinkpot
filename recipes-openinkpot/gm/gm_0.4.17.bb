@@ -1,18 +1,14 @@
 DESCRIPTION = "Global Menu"
 SECTION = "x11/application"
-DEPENDS = "ecore evas edje efreet liblanguage liblops libkeys libeoi xcb-util-wm"
+DEPENDS = "ecore evas edje efreet liblanguage liblops libkeys libeoi"
 RDEPENDS_${PN} = "eabout madshelf"
 HOMEPAGE = "http://www.openinkpot.org"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://${S}/COPYING;md5=751419260aa954499f7abaabaa882bbe"
 
-SRC_URI = "git://git.openinkpot.org/gm.git;protocol=git \
-			file://x.patch \
-			file://scalable_theme.patch \
-			file://native_x_size.patch \
-"
+SRC_URI = "git://github.com/OpenInkpot/gm.git;protocol=git"
 
-SRCREV = ""
+SRCREV = "master"
 
 S = "${WORKDIR}/git/"
 
