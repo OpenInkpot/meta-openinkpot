@@ -44,5 +44,6 @@ pkg_prerm_${PN} () {
 }
 
 # TODO: add separate package with data
-FILES_${PN} += "${datadir} ${sysconfdir}"
+FILES_${PN} += "${datadir}/eoi ${datadir}/help ${datadir}/keys ${sysconfdir}"
+FILES_${PN}-locale = "${datadir}/locale"
 FILES_${PN}-dbg += "${libdir}/gm/configlets/.debug"
